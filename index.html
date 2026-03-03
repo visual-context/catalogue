@@ -1,1410 +1,1401 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Cursor Movement Visualizations - Data Library</title>
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-        />
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            :root {
-                --primary: #2563eb;
-                --primary-dark: #1e40af;
-                --primary-light: #dbeafe;
-                --secondary: #64748b;
-                --success: #10b981;
-                --warning: #f59e0b;
-                --danger: #ef4444;
-                --bg-primary: #ffffff;
-                --bg-secondary: #f8fafc;
-                --bg-tertiary: #f1f5f9;
-                --text-primary: #1e293b;
-                --text-secondary: #64748b;
-                --text-tertiary: #94a3b8;
-                --border: #e2e8f0;
-                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-                --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            html {
-                scroll-behavior: smooth;
-            }
-
-            body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    "Helvetica Neue", Arial, sans-serif;
-                background-color: var(--bg-tertiary);
-                color: var(--text-primary);
-                line-height: 1.6;
-                -webkit-font-smoothing: antialiased;
-            }
-
-            .skip-link {
-                position: absolute;
-                top: -40px;
-                left: 0;
-                background: var(--primary);
-                color: white;
-                padding: 12px 20px;
-                z-index: 1000;
-                border-radius: 0 0 6px 0;
-                text-decoration: none;
-                font-weight: 600;
-                font-size: 0.9rem;
-            }
-
-            .skip-link:focus {
-                top: 0;
-            }
-
-            .sr-only {
-                position: absolute;
-                width: 1px;
-                height: 1px;
-                padding: 0;
-                margin: -1px;
-                overflow: hidden;
-                clip: rect(0, 0, 0, 0);
-                white-space: nowrap;
-                border-width: 0;
-            }
-
-            :focus-visible {
-                outline: 2px solid var(--primary);
-                outline-offset: 2px;
-            }
-
-            .header {
-                background: linear-gradient(
-                    135deg,
-                    var(--primary) 0%,
-                    var(--primary-dark) 100%
-                );
-                color: white;
-                padding: 0.75rem 0;
-                box-shadow: var(--shadow-md);
-                position: sticky;
-                top: 0;
-                z-index: 100;
-            }
-
-            .header-container {
-                max-width: 2000px;
-                margin: 0 auto;
-                padding: 0 2rem;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 2rem;
-            }
-
-            .header-content h1 {
-                font-size: 1.3rem;
-                font-weight: 700;
-                margin: 0;
-                letter-spacing: -0.02em;
-            }
-
-            .header-content p {
-                display: none;
-            }
-
-            .header-badge {
-                display: none;
-            }
-
-            .header-button {
-                padding: 0.5rem 1.2rem;
-                background: rgba(255, 255, 255, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                color: white;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 0.85rem;
-                font-weight: 600;
-                transition: var(--transition);
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                text-decoration: none;
-                white-space: nowrap;
-            }
-
-            .header-button:hover {
-                background: rgba(255, 255, 255, 0.3);
-                border-color: rgba(255, 255, 255, 0.5);
-            }
-
-            .layout {
-                display: grid;
-                grid-template-columns: 300px 1fr;
-                gap: 0;
-                max-width: 2000px;
-                margin: 0 auto;
-            }
-
-            .sidebar {
-                background: var(--bg-primary);
-                border-right: 1px solid var(--border);
-                overflow-y: auto;
-                padding: 2rem 0;
-                box-shadow: var(--shadow-sm);
-                position: sticky;
-                top: 60px;
-                max-height: calc(100vh - 60px);
-            }
-
-            .sidebar-section {
-                padding: 0 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .sidebar-title {
-                font-size: 0.85rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                color: var(--text-tertiary);
-                margin-bottom: 1rem;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-
-            .filter-controls-mini {
-                display: flex;
-                gap: 0.5rem;
-            }
-
-            .btn-mini {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.75rem;
-                border: 1px solid var(--border);
-                background: var(--bg-secondary);
-                color: var(--text-secondary);
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: var(--transition);
-            }
-
-            .btn-mini:hover {
-                background: var(--primary-light);
-                border-color: var(--primary);
-                color: var(--primary);
-            }
-
-            .filter-group {
-                margin-bottom: 1.5rem;
-            }
-
-            .checkbox-group {
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                max-height: 300px;
-                overflow-y: auto;
-                padding-right: 0.5rem;
-            }
-
-            .checkbox-item {
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                padding: 0.5rem 0.75rem;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: var(--transition);
-            }
-
-            .checkbox-item:hover {
-                background: var(--bg-secondary);
-            }
-
-            .checkbox-item input[type="checkbox"] {
-                width: 18px;
-                height: 18px;
-                accent-color: var(--primary);
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-
-            .checkbox-item label {
-                cursor: pointer;
-                font-size: 0.95rem;
-                user-select: none;
-                flex: 1;
-                margin: 0;
-            }
-
-            .main-content {
-                display: flex;
-                flex-direction: column;
-                background: var(--bg-tertiary);
-                overflow-y: auto;
-            }
-
-            .top-bar {
-                background: var(--bg-primary);
-                border-bottom: 1px solid var(--border);
-                padding: 1.5rem 2rem;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 2rem;
-                flex-wrap: wrap;
-            }
-
-            .results-info {
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-            }
-
-            .results-count {
-                font-size: 1rem;
-                font-weight: 600;
-                color: var(--text-primary);
-            }
-
-            .results-stats {
-                display: flex;
-                gap: 1.5rem;
-                font-size: 0.9rem;
-                color: var(--text-secondary);
-            }
-
-            .stat-item {
-                display: flex;
-                align-items: center;
-                gap: 0.4rem;
-            }
-
-            .stat-badge {
-                background: var(--primary-light);
-                color: var(--primary);
-                font-weight: 700;
-                padding: 0.2rem 0.6rem;
-                border-radius: 4px;
-            }
-
-            .color-legend {
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                font-size: 0.85rem;
-                color: var(--text-secondary);
-                padding-left: 1.5rem;
-                border-left: 1px solid var(--border);
-            }
-
-            .color-legend-title {
-                font-weight: 600;
-                color: var(--text-primary);
-                margin-right: 0.5rem;
-            }
-
-            .legend-item {
-                display: flex;
-                align-items: center;
-                gap: 0.4rem;
-            }
-
-            .legend-dot {
-                width: 16px;
-                height: 16px;
-                border-radius: 3px;
-                flex-shrink: 0;
-            }
-
-            .legend-dot.none {
-                background: #575757;
-            }
-
-            .legend-dot.minimap {
-                background: #62deb9;
-            }
-
-            .legend-dot.overview {
-                background: #4393dc;
-            }
-
-            .top-controls {
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-            }
-
-            .view-control {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .view-control label {
-                font-size: 0.9rem;
-                font-weight: 600;
-                color: var(--text-secondary);
-                white-space: nowrap;
-            }
-
-            .view-control select {
-                padding: 0.6rem 0.8rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg-primary);
-                color: var(--text-primary);
-                font-size: 0.9rem;
-                font-weight: 500;
-                cursor: pointer;
-                transition: var(--transition);
-            }
-
-            .view-control select:hover {
-                border-color: var(--primary);
-            }
-
-            .gallery-container {
-                flex: 1;
-                padding: 2rem;
-                overflow-y: auto;
-            }
-
-            .gallery {
-                display: grid;
-                gap: 1.5rem;
-                width: 100%;
-            }
-
-            .gallery.grid-small {
-                grid-template-columns: repeat(6, 1fr);
-                gap: 0.75rem;
-            }
-
-            .gallery.grid-medium {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 1.5rem;
-            }
-
-            .gallery.grid-large {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 1.5rem;
-            }
-
-            .detail-item {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-                gap: 0.4rem;
-                padding: 0.5rem 0.4rem;
-                border-right: 1px solid var(--border);
-                text-align: center;
-                font-size: 0.75rem;
-                min-width: 0;
-            }
-
-            .detail-item:last-of-type {
-                border-right: none;
-            }
-
-            .detail-item i {
-                color: var(--text-tertiary);
-                font-size: 0.9rem;
-                flex-shrink: 0;
-            }
-
-            .detail-item::before {
-                display: none;
-            }
-
-            .detail-item:nth-child(1)::before {
-                display: none;
-            }
-
-            .detail-item:nth-child(2)::before {
-                display: none;
-            }
-
-            .detail-item:nth-child(3)::before {
-                display: none;
-            }
-
-            .detail-label {
-                display: none;
-            }
-
-            .detail-value {
-                color: var(--text-primary);
-                font-weight: 600;
-                word-break: break-word;
-                display: block;
-            }
-
-            .image-card {
-                background: var(--bg-primary);
-                border-radius: 12px;
-                overflow: hidden;
-                box-shadow: var(--shadow-sm);
-                transition: var(--transition);
-                border: 1px solid var(--border);
-                display: flex;
-                flex-direction: column;
-            }
-
-            .image-card:hover {
-                box-shadow: var(--shadow-lg);
-                transform: translateY(-4px);
-                border-color: var(--primary);
-            }
-
-            .image-card:focus-within {
-                box-shadow: var(--shadow-lg);
-                border-color: var(--primary);
-            }
-
-            .image-container {
-                position: relative;
-                overflow: hidden;
-                aspect-ratio: 1;
-                background: var(--bg-secondary);
-            }
-
-            .image-button {
-                width: 100%;
-                height: 100%;
-                border: none;
-                padding: 0;
-                background: none;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-            }
-
-            .image-button:focus-visible {
-                outline: 3px solid var(--primary);
-                outline-offset: -3px;
-            }
-
-            .image-container img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                transition: transform 0.3s ease;
-                pointer-events: none;
-            }
-
-            .image-button:hover img {
-                transform: scale(1.08);
-            }
-
-            .image-overlay {
-                position: absolute;
-                inset: 0;
-                background: rgba(0, 0, 0, 0);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: background 0.3s ease;
-            }
-
-            .image-button:hover .image-overlay {
-                background: rgba(0, 0, 0, 0.3);
-            }
-
-            .image-info {
-                padding: 0;
-                flex: 1;
-                display: flex;
-                flex-direction: row;
-                gap: 0;
-            }
-
-            .image-details {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 0;
-                font-size: 0.85rem;
-                flex: 1;
-            }
-
-            .condition-badge {
-                padding: 0.75rem;
-                border-radius: 0;
-                font-size: 0;
-                font-weight: 700;
-                text-transform: capitalize;
-                color: transparent;
-                box-shadow: none;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-width: 100px;
-            }
-
-            .condition-badge.none {
-                background: #575757;
-            }
-
-            .condition-badge.minimap {
-                background: #62deb9;
-            }
-
-            .condition-badge.overview {
-                background: #4393dc;
-            }
-
-            .gallery.gallery.grid-medium .condition-badge {
-                min-width: 60px;
-            }
-
-            .gallery.grid-small .condition-badge {
-                min-width: 30px;
-            }
-
-            .no-results {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 1rem;
-                padding: 4rem 2rem;
-                color: var(--text-secondary);
-                text-align: center;
-                grid-column: 1 / -1;
-            }
-
-            .no-results h3 {
-                font-size: 1.5rem;
-                color: var(--text-primary);
-                margin: 0;
-            }
-
-            .loading {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.75rem;
-                padding: 3rem;
-                color: var(--text-secondary);
-                font-weight: 500;
-                grid-column: 1 / -1;
-            }
-
-            .spinner {
-                width: 20px;
-                height: 20px;
-                border: 2px solid var(--border);
-                border-top-color: var(--primary);
-                border-radius: 50%;
-                animation: spin 0.8s linear infinite;
-            }
-
-            @keyframes spin {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-
-            .modal {
-                display: none;
-                position: fixed;
-                z-index: 2000;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                backdrop-filter: blur(4px);
-            }
-
-            .modal[aria-hidden="false"] {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: fadeIn 0.2s ease-out;
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                }
-                to {
-                    opacity: 1;
-                }
-            }
-
-            .modal-content {
-                position: relative;
-                background: none;
-                border-radius: 0;
-                padding: 0;
-                max-width: 90vw;
-                max-height: 90vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                animation: slideUp 0.3s ease-out;
-            }
-
-            @keyframes slideUp {
-                from {
-                    transform: translateY(20px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
-            }
-
-            .modal-image {
-                max-width: 80%;
-                max-height: 80%;
-                object-fit: contain;
-                border-radius: 0;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            }
-
-            .modal-close {
-                position: absolute;
-                top: -50px;
-                right: 0;
-                background: transparent;
-                border: none;
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 2rem;
-                color: white;
-                transition: var(--transition);
-                z-index: 10;
-            }
-
-            .modal-close:hover {
-                background: rgba(255, 255, 255, 0.2);
-                transform: rotate(90deg);
-            }
-
-            .modal-close:focus-visible {
-                outline: 2px solid white;
-                outline-offset: 2px;
-            }
-
-            .btn {
-                padding: 0.75rem 1.5rem;
-                border: none;
-                border-radius: 8px;
-                font-size: 0.95rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: var(--transition);
-                display: inline-flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .btn-primary {
-                background: var(--primary);
-                color: white;
-            }
-
-            .btn-primary:hover {
-                background: var(--primary-dark);
-                box-shadow: var(--shadow-md);
-            }
-
-            .btn-secondary {
-                background: var(--bg-secondary);
-                color: var(--text-primary);
-                border: 1px solid var(--border);
-            }
-
-            .btn-secondary:hover {
-                background: var(--bg-tertiary);
-                border-color: var(--primary);
-                color: var(--primary);
-            }
-
-            .btn-secondary:active {
-                background: var(--primary-light);
-            }
-
-            .btn-group {
-                display: flex;
-                gap: 0.75rem;
-                flex-wrap: wrap;
-            }
-
-            @media (max-width: 1200px) {
-                .layout {
-                    grid-template-columns: 250px 1fr;
-                }
-
-                .gallery.grid-large {
-                    grid-template-columns: repeat(
-                        auto-fill,
-                        minmax(200px, 1fr)
-                    );
-                }
-            }
-
-            @media (max-width: 768px) {
-                .layout {
-                    grid-template-columns: 1fr;
-                    height: auto;
-                }
-
-                .sidebar {
-                    display: none;
-                    position: fixed;
-                    left: 0;
-                    top: 80px;
-                    width: 100%;
-                    height: calc(100vh - 80px);
-                    z-index: 50;
-                    border-right: none;
-                    border-bottom: 1px solid var(--border);
-                    overflow-y: auto;
-                    background: var(--bg-primary);
-                    padding: 1.5rem;
-                    max-height: none;
-                }
-
-                .sidebar.open {
-                    display: block;
-                }
-
-                .main-content {
-                    height: auto;
-                }
-
-                .gallery-container {
-                    height: auto;
-                    padding: 1rem;
-                }
-
-                .gallery.grid-small {
-                    grid-template-columns: repeat(5, 1fr);
-                    gap: 0.5rem;
-                }
-
-                .gallery.grid-medium {
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 1rem;
-                }
-
-                .gallery.grid-large {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 1rem;
-                }
-
-                .top-bar {
-                    padding: 1rem;
-                    flex-direction: column;
-                    align-items: stretch;
-                }
-
-                .top-controls {
-                    flex-wrap: wrap;
-                }
-
-                .modal-content {
-                    padding: 1rem;
-                }
-
-                .modal-close {
-                    width: 36px;
-                    height: 36px;
-                }
-
-                .header-container {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-            }
-
-            @media (max-width: 480px) {
-                .header-container {
-                    padding: 0 1rem;
-                }
-
-                .header-content h1 {
-                    font-size: 1.5rem;
-                }
-
-                .header-content p {
-                    font-size: 0.85rem;
-                }
-
-                .gallery.grid-small {
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 0.5rem;
-                }
-
-                .gallery.grid-medium {
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 0.75rem;
-                }
-
-                .gallery.grid-large {
-                    grid-template-columns: 1fr;
-                    gap: 1rem;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <a href="#main-content" class="skip-link">Skip to main content</a>
-
-        <header class="header" role="banner">
-            <div class="header-container">
-                <div class="header-content">
-                    <h1>📊 Cursor Trajectories</h1>
-                    <p>
-                        Data library for cursor tracking analysis with filtering
-                        and export functionality
-                    </p>
-                    <div class="header-badge">
-                        <span id="headerBadgeText"
-                            >✨ Interactive Catalog with Download</span
-                        >
-                    </div>
-                </div>
-                <a
-                    href="https://visual-context.github.io/"
-                    class="header-button"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    ← Back to Visual Context Project Page
-                </a>
-            </div>
-        </header>
-
-        <div class="layout">
-            <aside
-                class="sidebar"
-                id="sidebar"
-                role="navigation"
-                aria-label="Filter options"
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cursor Movement Visualizations - Data Library</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1e40af;
+        --primary-light: #dbeafe;
+        --secondary: #64748b;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-tertiary: #f1f5f9;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-tertiary: #94a3b8;
+        --border: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: var(--primary);
+        color: white;
+        padding: 12px 20px;
+        z-index: 1000;
+        border-radius: 0 0 6px 0;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .skip-link:focus {
+        top: 0;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        color: white;
+        padding: 0.75rem 0;
+        box-shadow: var(--shadow-md);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .header-container {
+        max-width: 2000px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+      }
+
+      .header-content h1 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+
+      .header-content p {
+        display: none;
+      }
+
+      .header-badge {
+        display: none;
+      }
+
+      .header-button {
+        padding: 0.5rem 1.2rem;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .header-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 0;
+        max-width: 2000px;
+        margin: 0 auto;
+      }
+
+      .sidebar {
+        background: var(--bg-primary);
+        border-right: 1px solid var(--border);
+        overflow-y: auto;
+        padding: 2rem 0;
+        box-shadow: var(--shadow-sm);
+        position: sticky;
+        top: 60px;
+        max-height: calc(100vh - 60px);
+      }
+
+      .sidebar-section {
+        padding: 0 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .sidebar-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .filter-controls-mini {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-mini {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        border: 1px solid var(--border);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+      }
+
+      .btn-mini:hover {
+        background: var(--primary-light);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .filter-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+      }
+
+      .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .checkbox-item:hover {
+        background: var(--bg-secondary);
+      }
+
+      .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .checkbox-item label {
+        cursor: pointer;
+        font-size: 0.95rem;
+        user-select: none;
+        flex: 1;
+        margin: 0;
+      }
+
+      .main-content {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-tertiary);
+        overflow-y: auto;
+      }
+
+      .top-bar {
+        background: var(--bg-primary);
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .results-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .results-count {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .results-stats {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .stat-badge {
+        background: var(--primary-light);
+        color: var(--primary);
+        font-weight: 700;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+      }
+
+      .color-legend {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        padding-left: 1.5rem;
+        border-left: 1px solid var(--border);
+      }
+
+      .color-legend-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-right: 0.5rem;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .legend-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+
+      .legend-dot.none {
+        background: #575757;
+      }
+
+      .legend-dot.minimap {
+        background: #62deb9;
+      }
+
+      .legend-dot.overview {
+        background: #4393dc;
+      }
+
+      .top-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .view-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .view-control label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+
+      .view-control select {
+        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .view-control select:hover {
+        border-color: var(--primary);
+      }
+
+      .gallery-container {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+      }
+
+      .gallery {
+        display: grid;
+        gap: 1.5rem;
+        width: 100%;
+      }
+
+      .gallery.grid-small {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.75rem;
+      }
+
+      .gallery.grid-medium {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+      }
+
+      .gallery.grid-large {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+
+      .detail-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.4rem;
+        border-right: 1px solid var(--border);
+        text-align: center;
+        font-size: 0.75rem;
+        min-width: 0;
+      }
+
+      .detail-item:last-of-type {
+        border-right: none;
+      }
+
+      .detail-item i {
+        color: var(--text-tertiary);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+
+      .detail-item::before {
+        display: none;
+      }
+
+      .detail-item:nth-child(1)::before {
+        display: none;
+      }
+
+      .detail-item:nth-child(2)::before {
+        display: none;
+      }
+
+      .detail-item:nth-child(3)::before {
+        display: none;
+      }
+
+      .detail-label {
+        display: none;
+      }
+
+      .detail-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        word-break: break-word;
+        display: block;
+      }
+
+      .image-card {
+        background: var(--bg-primary);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .image-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+        border-color: var(--primary);
+      }
+
+      .image-card:focus-within {
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+      }
+
+      .image-container {
+        position: relative;
+        overflow: hidden;
+        aspect-ratio: 1;
+        background: var(--bg-secondary);
+      }
+
+      .image-button {
+        width: 100%;
+        height: 100%;
+        border: none;
+        padding: 0;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .image-button:focus-visible {
+        outline: 3px solid var(--primary);
+        outline-offset: -3px;
+      }
+
+      .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition:
+          transform 0.3s ease,
+          opacity 0.3s ease;
+        pointer-events: none;
+        opacity: 1;
+      }
+
+      .image-container img[data-src] {
+        opacity: 0;
+      }
+
+      .image-container img.loaded {
+        opacity: 1;
+      }
+
+      .image-container.loading {
+        background: linear-gradient(
+          90deg,
+          var(--bg-tertiary) 25%,
+          var(--bg-secondary) 50%,
+          var(--bg-tertiary) 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      .image-button:hover img {
+        transform: scale(1.08);
+      }
+
+      .image-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s ease;
+      }
+
+      .image-button:hover .image-overlay {
+        background: rgba(0, 0, 0, 0.3);
+      }
+
+      .image-info {
+        padding: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+      }
+
+      .image-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        font-size: 0.85rem;
+        flex: 1;
+      }
+
+      .condition-badge {
+        padding: 0.75rem;
+        border-radius: 0;
+        font-size: 0;
+        font-weight: 700;
+        text-transform: capitalize;
+        color: transparent;
+        box-shadow: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 100px;
+      }
+
+      .condition-badge.none {
+        background: #575757;
+      }
+
+      .condition-badge.minimap {
+        background: #62deb9;
+      }
+
+      .condition-badge.overview {
+        background: #4393dc;
+      }
+
+      .gallery.gallery.grid-medium .condition-badge {
+        min-width: 60px;
+      }
+
+      .gallery.grid-small .condition-badge {
+        min-width: 30px;
+      }
+
+      .no-results {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+        text-align: center;
+        grid-column: 1 / -1;
+      }
+
+      .no-results h3 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin: 0;
+      }
+
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        padding: 3rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        grid-column: 1 / -1;
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+      }
+
+      .modal[aria-hidden="false"] {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal-content {
+        position: relative;
+        background: none;
+        border-radius: 0;
+        padding: 0;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: slideUp 0.3s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-image {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+        border-radius: 0;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-close {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        background: transparent;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        transition: var(--transition);
+        z-index: 10;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg);
+      }
+
+      .modal-close:focus-visible {
+        outline: 2px solid white;
+        outline-offset: 2px;
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn-secondary {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: var(--bg-tertiary);
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .btn-secondary:active {
+        background: var(--primary-light);
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 1200px) {
+        .layout {
+          grid-template-columns: 250px 1fr;
+        }
+
+        .gallery.grid-large {
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+      }
+
+      @media (max-width: 768px) {
+        .layout {
+          grid-template-columns: 1fr;
+          height: auto;
+        }
+
+        .sidebar {
+          display: none;
+          position: fixed;
+          left: 0;
+          top: 80px;
+          width: 100%;
+          height: calc(100vh - 80px);
+          z-index: 50;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          overflow-y: auto;
+          background: var(--bg-primary);
+          padding: 1.5rem;
+          max-height: none;
+        }
+
+        .sidebar.open {
+          display: block;
+        }
+
+        .main-content {
+          height: auto;
+        }
+
+        .gallery-container {
+          height: auto;
+          padding: 1rem;
+        }
+
+        .gallery.grid-small {
+          grid-template-columns: repeat(5, 1fr);
+          gap: 0.5rem;
+        }
+
+        .gallery.grid-medium {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 1rem;
+        }
+
+        .gallery.grid-large {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+        }
+
+        .top-bar {
+          padding: 1rem;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .top-controls {
+          flex-wrap: wrap;
+        }
+
+        .modal-content {
+          padding: 1rem;
+        }
+
+        .modal-close {
+          width: 36px;
+          height: 36px;
+        }
+
+        .header-container {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .header-container {
+          padding: 0 1rem;
+        }
+
+        .header-content h1 {
+          font-size: 1.5rem;
+        }
+
+        .header-content p {
+          font-size: 0.85rem;
+        }
+
+        .gallery.grid-small {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.5rem;
+        }
+
+        .gallery.grid-medium {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
+        }
+
+        .gallery.grid-large {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header class="header" role="banner">
+      <div class="header-container">
+        <div class="header-content">
+          <h1>📊 Cursor Trajectories</h1>
+          <p>
+            Data library for cursor tracking analysis with filtering and export
+            functionality
+          </p>
+          <div class="header-badge">
+            <span id="headerBadgeText"
+              >✨ Interactive Catalog with Download</span
             >
-                <form id="filterForm" aria-label="Filter visualizations">
-                    <div class="sidebar-section">
-                        <div
-                            style="
-                                background: var(--primary-light);
-                                border: 1px solid var(--primary);
-                                padding: 0.75rem;
-                                border-radius: 8px;
-                                margin-bottom: 1.5rem;
-                            "
-                        >
-                            <p
-                                style="
-                                    font-size: 0.85rem;
-                                    color: var(--primary);
-                                    margin: 0;
-                                    line-height: 1.4;
-                                "
-                            >
-                                <strong>💡 Tip:</strong> Filter and download
-                                your data easily.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">
-                            Visualization Type
-                            <div class="filter-controls-mini">
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Select all visualization types"
-                                    onclick="selectAllInGroup('typeFilters')"
-                                >
-                                    All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Clear all visualization types"
-                                    onclick="clearAllInGroup('typeFilters')"
-                                >
-                                    None
-                                </button>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <div
-                                class="checkbox-group"
-                                id="typeFilters"
-                                role="group"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">
-                            Participant
-                            <div class="filter-controls-mini">
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Select all participants"
-                                    onclick="
-                                        selectAllInGroup('participantFilters')
-                                    "
-                                >
-                                    All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Clear all participants"
-                                    onclick="
-                                        clearAllInGroup('participantFilters')
-                                    "
-                                >
-                                    None
-                                </button>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <div
-                                class="checkbox-group"
-                                id="participantFilters"
-                                role="group"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">
-                            Content
-                            <div class="filter-controls-mini">
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Select all content variants"
-                                    onclick="selectAllInGroup('contentFilters')"
-                                >
-                                    All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Clear all content variants"
-                                    onclick="clearAllInGroup('contentFilters')"
-                                >
-                                    None
-                                </button>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <div
-                                class="checkbox-group"
-                                id="contentFilters"
-                                role="group"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">
-                            Condition
-                            <div class="filter-controls-mini">
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Select all conditions"
-                                    onclick="
-                                        selectAllInGroup('conditionFilters')
-                                    "
-                                >
-                                    All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Clear all conditions"
-                                    onclick="
-                                        clearAllInGroup('conditionFilters')
-                                    "
-                                >
-                                    None
-                                </button>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <div
-                                class="checkbox-group"
-                                id="conditionFilters"
-                                role="group"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">
-                            Question
-                            <div class="filter-controls-mini">
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Select all questions"
-                                    onclick="
-                                        selectAllInGroup('questionFilters')
-                                    "
-                                >
-                                    All
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn-mini"
-                                    aria-label="Clear all questions"
-                                    onclick="clearAllInGroup('questionFilters')"
-                                >
-                                    None
-                                </button>
-                            </div>
-                        </div>
-                        <div class="filter-group">
-                            <div
-                                class="checkbox-group"
-                                id="questionFilters"
-                                role="group"
-                            ></div>
-                        </div>
-                    </div>
-
-                    <div class="sidebar-section">
-                        <div class="btn-group">
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                onclick="selectAllFilters()"
-                                aria-label="Select all filters to show complete dataset"
-                            >
-                                Select All
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-secondary"
-                                onclick="clearAllFilters()"
-                                aria-label="Clear all filters to hide all visualizations"
-                            >
-                                Clear All
-                            </button>
-                        </div>
-                    </div>
-
-                    <hr
-                        style="
-                            margin: 1.5rem 0;
-                            border: none;
-                            border-top: 1px solid var(--border);
-                        "
-                    />
-
-                    <div class="sidebar-section">
-                        <div class="sidebar-title">📥 Download</div>
-                        <p
-                            style="
-                                font-size: 0.8rem;
-                                color: var(--text-tertiary);
-                                margin-bottom: 0.75rem;
-                            "
-                        >
-                            Export filtered or complete dataset as CSV
-                        </p>
-                        <div
-                            class="btn-group"
-                            style="flex-direction: column; width: 100%"
-                        >
-                            <button
-                                type="button"
-                                class="btn btn-primary"
-                                onclick="downloadFilteredData()"
-                                aria-label="Download current filtered results as CSV file"
-                                title="Download filtered results as CSV with records deduplication"
-                                style="width: 100%; justify-content: center"
-                            >
-                                📥 Filtered Data
-                            </button>
-                            <button
-                                type="button"
-                                class="btn btn-secondary"
-                                onclick="downloadAllData()"
-                                aria-label="Download complete dataset as CSV file"
-                                title="Download complete dataset as CSV with all records"
-                                style="width: 100%; justify-content: center"
-                            >
-                                📥 Full Dataset
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </aside>
-
-            <main id="main-content" class="main-content" role="main">
-                <div class="top-bar">
-                    <div class="results-info">
-                        <div>
-                            <div
-                                class="results-count"
-                                id="resultsCount"
-                                role="status"
-                                aria-live="polite"
-                                aria-atomic="true"
-                            >
-                                Loading...
-                            </div>
-                            <div class="results-stats">
-                                <div class="stat-item">
-                                    <span>Visualizations:</span>
-                                    <span class="stat-badge" id="vizCount"
-                                        >0</span
-                                    >
-                                </div>
-                                <div class="stat-item">
-                                    <span>Records:</span>
-                                    <span class="stat-badge" id="recordCount"
-                                        >0</span
-                                    >
-                                </div>
-                                <div class="color-legend">
-                                    <span class="color-legend-title"
-                                        >Condition:</span
-                                    >
-                                    <div class="legend-item">
-                                        <div class="legend-dot none"></div>
-                                        <span>Baseline</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-dot minimap"></div>
-                                        <span>Mini-map</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <div class="legend-dot overview"></div>
-                                        <span>Dynamic Context</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <span
-                                class="sr-only"
-                                id="resultsAnnouncement"
-                                aria-live="assertive"
-                                aria-atomic="true"
-                            ></span>
-                        </div>
-                    </div>
-
-                    <div class="top-controls">
-                        <div class="view-control">
-                            <label for="sortBy">Sort:</label>
-                            <select
-                                id="sortBy"
-                                aria-label="Sort visualizations by"
-                                onchange="changeSortOrder()"
-                            >
-                                <option value="questionid">Question ID</option>
-                                <option value="questionorder">
-                                    Question Order
-                                </option>
-                            </select>
-                        </div>
-                        <div class="view-control">
-                            <label for="gridSize">View:</label>
-                            <select
-                                id="gridSize"
-                                aria-label="Adjust gallery grid size"
-                                onchange="changeGridSize()"
-                            >
-                                <option value="small">Small</option>
-                                <option value="medium" selected>Medium</option>
-                                <option value="large">Large</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="gallery-container">
-                    <div
-                        class="gallery grid-medium"
-                        id="gallery"
-                        role="region"
-                        aria-label="Filtered visualization results"
-                    >
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            Loading visualizations...
-                        </div>
-                    </div>
-                </div>
-            </main>
+          </div>
         </div>
-
-        <div
-            id="imageModal"
-            class="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modalTitle"
-            aria-hidden="true"
+        <a
+          href="https://visual-context.github.io/"
+          class="header-button"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-            <div class="modal-content">
-                <h2 id="modalTitle" class="sr-only">
-                    Expanded visualization view
-                </h2>
-                <button
-                    type="button"
-                    class="modal-close"
-                    onclick="closeModal()"
-                    aria-label="Close full-size image view"
-                >
-                    ×
-                </button>
-                <img
-                    class="modal-image"
-                    id="modalImage"
-                    src=""
-                    alt="Full-size visualization"
-                />
+          ← Back to Visual Context Project Page
+        </a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside
+        class="sidebar"
+        id="sidebar"
+        role="navigation"
+        aria-label="Filter options"
+      >
+        <form id="filterForm" aria-label="Filter visualizations">
+          <div class="sidebar-section">
+            <div
+              style="
+                background: var(--primary-light);
+                border: 1px solid var(--primary);
+                padding: 0.75rem;
+                border-radius: 8px;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--primary);
+                  margin: 0;
+                  line-height: 1.4;
+                "
+              >
+                <strong>💡 Tip:</strong> Filter and download your data easily.
+              </p>
             </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">
+              Visualization Type
+              <div class="filter-controls-mini">
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Select all visualization types"
+                  onclick="selectAllInGroup('typeFilters')"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Clear all visualization types"
+                  onclick="clearAllInGroup('typeFilters')"
+                >
+                  None
+                </button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <div class="checkbox-group" id="typeFilters" role="group"></div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">
+              Participant
+              <div class="filter-controls-mini">
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Select all participants"
+                  onclick="selectAllInGroup('participantFilters')"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Clear all participants"
+                  onclick="clearAllInGroup('participantFilters')"
+                >
+                  None
+                </button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <div
+                class="checkbox-group"
+                id="participantFilters"
+                role="group"
+              ></div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">
+              Content
+              <div class="filter-controls-mini">
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Select all content variants"
+                  onclick="selectAllInGroup('contentFilters')"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Clear all content variants"
+                  onclick="clearAllInGroup('contentFilters')"
+                >
+                  None
+                </button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <div
+                class="checkbox-group"
+                id="contentFilters"
+                role="group"
+              ></div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">
+              Condition
+              <div class="filter-controls-mini">
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Select all conditions"
+                  onclick="selectAllInGroup('conditionFilters')"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Clear all conditions"
+                  onclick="clearAllInGroup('conditionFilters')"
+                >
+                  None
+                </button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <div
+                class="checkbox-group"
+                id="conditionFilters"
+                role="group"
+              ></div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">
+              Question
+              <div class="filter-controls-mini">
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Select all questions"
+                  onclick="selectAllInGroup('questionFilters')"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  class="btn-mini"
+                  aria-label="Clear all questions"
+                  onclick="clearAllInGroup('questionFilters')"
+                >
+                  None
+                </button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <div
+                class="checkbox-group"
+                id="questionFilters"
+                role="group"
+              ></div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="btn-group">
+              <button
+                type="button"
+                class="btn btn-primary"
+                onclick="selectAllFilters()"
+                aria-label="Select all filters to show complete dataset"
+              >
+                Select All
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="clearAllFilters()"
+                aria-label="Clear all filters to hide all visualizations"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+
+          <hr
+            style="
+              margin: 1.5rem 0;
+              border: none;
+              border-top: 1px solid var(--border);
+            "
+          />
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">📥 Download</div>
+            <p
+              style="
+                font-size: 0.8rem;
+                color: var(--text-tertiary);
+                margin-bottom: 0.75rem;
+              "
+            >
+              Export filtered or complete dataset as CSV
+            </p>
+            <div class="btn-group" style="flex-direction: column; width: 100%">
+              <button
+                type="button"
+                class="btn btn-primary"
+                onclick="downloadFilteredData()"
+                aria-label="Download current filtered results as CSV file"
+                title="Download filtered results as CSV with records deduplication"
+                style="width: 100%; justify-content: center"
+              >
+                📥 Filtered Data
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="downloadAllData()"
+                aria-label="Download complete dataset as CSV file"
+                title="Download complete dataset as CSV with all records"
+                style="width: 100%; justify-content: center"
+              >
+                📥 Full Dataset
+              </button>
+            </div>
+          </div>
+        </form>
+      </aside>
+
+      <main id="main-content" class="main-content" role="main">
+        <div class="top-bar">
+          <div class="results-info">
+            <div>
+              <div
+                class="results-count"
+                id="resultsCount"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                Loading...
+              </div>
+              <div class="results-stats">
+                <div class="stat-item">
+                  <span>Visualizations:</span>
+                  <span class="stat-badge" id="vizCount">0</span>
+                </div>
+                <div class="stat-item">
+                  <span>Records:</span>
+                  <span class="stat-badge" id="recordCount">0</span>
+                </div>
+                <div class="color-legend">
+                  <span class="color-legend-title">Condition:</span>
+                  <div class="legend-item">
+                    <div class="legend-dot none"></div>
+                    <span>Baseline</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot minimap"></div>
+                    <span>Mini-map</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot overview"></div>
+                    <span>Dynamic Context</span>
+                  </div>
+                </div>
+              </div>
+              <span
+                class="sr-only"
+                id="resultsAnnouncement"
+                aria-live="assertive"
+                aria-atomic="true"
+              ></span>
+            </div>
+          </div>
+
+          <div class="top-controls">
+            <div class="view-control">
+              <label for="sortBy">Sort:</label>
+              <select
+                id="sortBy"
+                aria-label="Sort visualizations by"
+                onchange="changeSortOrder()"
+              >
+                <option value="questionid">Question ID</option>
+                <option value="questionorder">Question Order</option>
+              </select>
+            </div>
+            <div class="view-control">
+              <label for="gridSize">View:</label>
+              <select
+                id="gridSize"
+                aria-label="Adjust gallery grid size"
+                onchange="changeGridSize()"
+              >
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <script>
-            // ============================================================
-            // CONFIGURATION - Customize these URLs for your data sources
-            // ============================================================
-            const CONFIG = {
-                // GitHub raw content URLs (optional - leave empty to use local files)
-                imageDetailsGitHub:
-                    "https://raw.githubusercontent.com/visual-context/catalogue/main/cursor-imaging-details.csv",
-                fullInteractionsGitHub:
-                    "https://raw.githubusercontent.com/visual-context/catalogue/main/full_interactions.csv",
+        <div class="gallery-container">
+          <div
+            class="gallery grid-medium"
+            id="gallery"
+            role="region"
+            aria-label="Filtered visualization results"
+          >
+            <div class="loading">
+              <div class="spinner"></div>
+              Loading visualizations...
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
 
-                // Local file paths (fallback if GitHub fails)
-                imageDetailsLocal: "./cursor-imaging-details.csv",
-                fullInteractionsLocal: "./full_interactions.csv",
-            };
-            // ============================================================
+    <div
+      id="imageModal"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modalTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-content">
+        <h2 id="modalTitle" class="sr-only">Expanded visualization view</h2>
+        <button
+          type="button"
+          class="modal-close"
+          onclick="closeModal()"
+          aria-label="Close full-size image view"
+        >
+          ×
+        </button>
+        <img
+          class="modal-image"
+          id="modalImage"
+          src=""
+          alt="Full-size visualization"
+        />
+      </div>
+    </div>
 
-            let allData = [];
-            let filteredData = [];
-            let fullInteractionsData = [];
-            let filteredInteractionsData = [];
-            let availableTypes = [];
-            let availableParticipants = [];
-            let availableContent = [];
-            let availableConditions = [];
-            let availableQuestions = [];
-            let currentSortBy = "questionid";
+    <script>
+      // ============================================================
+      // CONFIGURATION - Customize these URLs for your data sources
+      // ============================================================
+      const CONFIG = {
+        // GitHub raw content URLs (optional - leave empty to use local files)
+        imageDetailsGitHub:
+          "https://raw.githubusercontent.com/visual-context/catalogue/main/cursor-imaging-details.csv",
+        fullInteractionsGitHub:
+          "https://raw.githubusercontent.com/visual-context/catalogue/main/full_interactions.csv",
 
-            async function fetchFromUrl(url) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok)
-                        throw new Error(`HTTP ${response.status}`);
-                    return await response.text();
-                } catch (error) {
-                    return null;
-                }
-            }
+        // Local file paths (fallback if GitHub fails)
+        imageDetailsLocal: "./cursor-imaging-details.csv",
+        fullInteractionsLocal: "./full_interactions.csv",
+      };
+      // ============================================================
 
-            async function loadData() {
-                try {
-                    // Try to load image details CSV
-                    let csvText = null;
+      let allData = [];
+      let filteredData = [];
+      let fullInteractionsData = [];
+      let filteredInteractionsData = [];
+      let availableTypes = [];
+      let availableParticipants = [];
+      let availableContent = [];
+      let availableConditions = [];
+      let availableQuestions = [];
+      let currentSortBy = "questionid";
 
-                    // Try GitHub first if configured
-                    if (CONFIG.imageDetailsGitHub) {
-                        console.log(
-                            "Trying to load image details from GitHub...",
-                        );
-                        csvText = await fetchFromUrl(CONFIG.imageDetailsGitHub);
-                    }
+      async function fetchFromUrl(url) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.text();
+        } catch (error) {
+          return null;
+        }
+      }
 
-                    // Fall back to local file
-                    if (!csvText) {
-                        console.log(
-                            "Trying to load image details from local path...",
-                        );
-                        csvText = await fetchFromUrl(CONFIG.imageDetailsLocal);
-                    }
+      async function loadData() {
+        try {
+          // Try to load image details CSV
+          let csvText = null;
 
-                    if (csvText) {
-                        allData = parseCSV(csvText);
-                        console.log("✓ Loaded image details CSV");
-                    } else {
-                        throw new Error("Could not load image details CSV");
-                    }
+          // Try GitHub first if configured
+          if (CONFIG.imageDetailsGitHub) {
+            console.log("Trying to load image details from GitHub...");
+            csvText = await fetchFromUrl(CONFIG.imageDetailsGitHub);
+          }
 
-                    // Try to load full interactions CSV
-                    let interactionsCsvText = null;
+          // Fall back to local file
+          if (!csvText) {
+            console.log("Trying to load image details from local path...");
+            csvText = await fetchFromUrl(CONFIG.imageDetailsLocal);
+          }
 
-                    // Try GitHub first if configured
-                    if (CONFIG.fullInteractionsGitHub) {
-                        console.log(
-                            "Trying to load interactions data from GitHub...",
-                        );
-                        interactionsCsvText = await fetchFromUrl(
-                            CONFIG.fullInteractionsGitHub,
-                        );
-                    }
+          if (csvText) {
+            allData = parseCSV(csvText);
+            console.log("✓ Loaded image details CSV");
+          } else {
+            throw new Error("Could not load image details CSV");
+          }
 
-                    // Fall back to local file
-                    if (!interactionsCsvText) {
-                        console.log(
-                            "Trying to load interactions data from local path...",
-                        );
-                        interactionsCsvText = await fetchFromUrl(
-                            CONFIG.fullInteractionsLocal,
-                        );
-                    }
+          // Try to load full interactions CSV
+          let interactionsCsvText = null;
 
-                    if (interactionsCsvText) {
-                        fullInteractionsData =
-                            parseFullInteractionsCSV(interactionsCsvText);
-                        console.log("✓ Loaded interactions CSV");
-                    } else {
-                        console.warn(
-                            "⚠ Could not load interactions CSV - downloads may be limited",
-                        );
-                    }
+          // Try GitHub first if configured
+          if (CONFIG.fullInteractionsGitHub) {
+            console.log("Trying to load interactions data from GitHub...");
+            interactionsCsvText = await fetchFromUrl(
+              CONFIG.fullInteractionsGitHub,
+            );
+          }
 
-                    extractUniqueValues();
-                    createFilterElements();
-                    filteredData = [...allData];
-                    filteredInteractionsData = [...fullInteractionsData];
-                    updateDisplay();
-                } catch (error) {
-                    console.error("Failed to load data:", error);
-                    showFileInputOption();
-                }
-            }
+          // Fall back to local file
+          if (!interactionsCsvText) {
+            console.log("Trying to load interactions data from local path...");
+            interactionsCsvText = await fetchFromUrl(
+              CONFIG.fullInteractionsLocal,
+            );
+          }
 
-            function showFileInputOption() {
-                document.getElementById("gallery").innerHTML = `
+          if (interactionsCsvText) {
+            fullInteractionsData =
+              parseFullInteractionsCSV(interactionsCsvText);
+            console.log("✓ Loaded interactions CSV");
+          } else {
+            console.warn(
+              "⚠ Could not load interactions CSV - downloads may be limited",
+            );
+          }
+
+          extractUniqueValues();
+          createFilterElements();
+          filteredData = [...allData];
+          filteredInteractionsData = [...fullInteractionsData];
+          updateDisplay();
+        } catch (error) {
+          console.error("Failed to load data:", error);
+          showFileInputOption();
+        }
+      }
+
+      function showFileInputOption() {
+        document.getElementById("gallery").innerHTML = `
                 <div class="no-results" style="padding: 3rem 2rem; gap: 1.5rem;">
                     <h3>📁 Load CSV Files</h3>
                     <p style="color: var(--text-secondary); margin: 0;">
@@ -1435,340 +1426,312 @@
                     </p>
                 </div>
             `;
+      }
+
+      function handleImageDetailsSelect(event) {
+        const file = event.target.files[0];
+        if (file && file.type === "text/csv") {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            try {
+              allData = parseCSV(e.target.result);
+              extractUniqueValues();
+              createFilterElements();
+              filteredData = [...allData];
+              updateDisplay();
+            } catch (error) {
+              console.error("Error parsing CSV:", error);
+              document.getElementById("gallery").innerHTML =
+                '<div class="no-results"><h3>Error parsing CSV</h3><p>' +
+                error.message +
+                "</p></div>";
             }
+          };
+          reader.readAsText(file);
+        } else {
+          alert("Please select a valid CSV file.");
+        }
+      }
 
-            function handleImageDetailsSelect(event) {
-                const file = event.target.files[0];
-                if (file && file.type === "text/csv") {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        try {
-                            allData = parseCSV(e.target.result);
-                            extractUniqueValues();
-                            createFilterElements();
-                            filteredData = [...allData];
-                            updateDisplay();
-                        } catch (error) {
-                            console.error("Error parsing CSV:", error);
-                            document.getElementById("gallery").innerHTML =
-                                '<div class="no-results"><h3>Error parsing CSV</h3><p>' +
-                                error.message +
-                                "</p></div>";
-                        }
-                    };
-                    reader.readAsText(file);
-                } else {
-                    alert("Please select a valid CSV file.");
-                }
+      function handleFullInteractionsSelect(event) {
+        const file = event.target.files[0];
+        if (file && file.type === "text/csv") {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            try {
+              fullInteractionsData = parseFullInteractionsCSV(e.target.result);
+              filteredInteractionsData = [...fullInteractionsData];
+            } catch (error) {
+              console.error("Error parsing interactions CSV:", error);
+              alert("Error loading interactions file: " + error.message);
             }
+          };
+          reader.readAsText(file);
+        } else {
+          alert("Please select a valid CSV file.");
+        }
+      }
 
-            function handleFullInteractionsSelect(event) {
-                const file = event.target.files[0];
-                if (file && file.type === "text/csv") {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        try {
-                            fullInteractionsData = parseFullInteractionsCSV(
-                                e.target.result,
-                            );
-                            filteredInteractionsData = [
-                                ...fullInteractionsData,
-                            ];
-                        } catch (error) {
-                            console.error(
-                                "Error parsing interactions CSV:",
-                                error,
-                            );
-                            alert(
-                                "Error loading interactions file: " +
-                                    error.message,
-                            );
-                        }
-                    };
-                    reader.readAsText(file);
-                } else {
-                    alert("Please select a valid CSV file.");
-                }
+      function parseCSV(text) {
+        const lines = text.trim().split("\n");
+        const headers = lines[0]
+          .split(",")
+          .map((h) => h.trim().replace(/"/g, ""));
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i]
+            .split(",")
+            .map((v) => v.trim().replace(/"/g, ""));
+          const row = {};
+          headers.forEach((header, index) => {
+            row[header] = values[index] || "";
+          });
+          const types = [
+            "Heatmap",
+            "Contour",
+            "TimeWeighted",
+            "FixationMap",
+            "Scanpath",
+          ];
+          types.forEach((type) => {
+            if (row[type] && row[type] !== "") {
+              data.push({
+                ...row,
+                Type: type,
+                Filename: row[type],
+              });
             }
+          });
+        }
+        return data;
+      }
 
-            function parseCSV(text) {
-                const lines = text.trim().split("\n");
-                const headers = lines[0]
-                    .split(",")
-                    .map((h) => h.trim().replace(/"/g, ""));
-                const data = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i]
-                        .split(",")
-                        .map((v) => v.trim().replace(/"/g, ""));
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index] || "";
-                    });
-                    const types = [
-                        "Heatmap",
-                        "Contour",
-                        "TimeWeighted",
-                        "FixationMap",
-                        "Scanpath",
-                    ];
-                    types.forEach((type) => {
-                        if (row[type] && row[type] !== "") {
-                            data.push({
-                                ...row,
-                                Type: type,
-                                Filename: row[type],
-                            });
-                        }
-                    });
-                }
-                return data;
-            }
+      function parseFullInteractionsCSV(text) {
+        const lines = text.trim().split("\n");
+        const headers = lines[0]
+          .split(",")
+          .map((h) => h.trim().replace(/"/g, ""));
+        const data = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i]
+            .split(",")
+            .map((v) => v.trim().replace(/"/g, ""));
+          const row = {};
+          headers.forEach((header, index) => {
+            row[header] = values[index] || "";
+          });
+          data.push(row);
+        }
+        return data;
+      }
 
-            function parseFullInteractionsCSV(text) {
-                const lines = text.trim().split("\n");
-                const headers = lines[0]
-                    .split(",")
-                    .map((h) => h.trim().replace(/"/g, ""));
-                const data = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const values = lines[i]
-                        .split(",")
-                        .map((v) => v.trim().replace(/"/g, ""));
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index] || "";
-                    });
-                    data.push(row);
-                }
-                return data;
-            }
+      function extractUniqueValues() {
+        availableTypes = [...new Set(allData.map((item) => item.Type))].sort();
+        availableParticipants = [
+          ...new Set(allData.map((item) => item.ParticipantID)),
+        ].sort(naturalSort);
+        availableContent = [
+          ...new Set(allData.map((item) => item.Content)),
+        ].sort();
+        availableConditions = [
+          ...new Set(allData.map((item) => item.Condition)),
+        ].sort(sortConditions);
+        availableQuestions = [
+          ...new Set(allData.map((item) => item.QuestionID)),
+        ].sort(naturalSort);
+      }
 
-            function extractUniqueValues() {
-                availableTypes = [
-                    ...new Set(allData.map((item) => item.Type)),
-                ].sort();
-                availableParticipants = [
-                    ...new Set(allData.map((item) => item.ParticipantID)),
-                ].sort(naturalSort);
-                availableContent = [
-                    ...new Set(allData.map((item) => item.Content)),
-                ].sort();
-                availableConditions = [
-                    ...new Set(allData.map((item) => item.Condition)),
-                ].sort(sortConditions);
-                availableQuestions = [
-                    ...new Set(allData.map((item) => item.QuestionID)),
-                ].sort(naturalSort);
-            }
+      function naturalSort(a, b) {
+        const aMatch = a.match(/(\D*)(\d+)(.*)/);
+        const bMatch = b.match(/(\D*)(\d+)(.*)/);
+        if (aMatch && bMatch) {
+          const aNum = parseInt(aMatch[2]);
+          const bNum = parseInt(bMatch[2]);
+          if (aNum !== bNum) return aNum - bNum;
+          return (
+            aMatch[1].localeCompare(bMatch[1]) ||
+            aMatch[3].localeCompare(bMatch[3])
+          );
+        }
+        return a.localeCompare(b);
+      }
 
-            function naturalSort(a, b) {
-                const aMatch = a.match(/(\D*)(\d+)(.*)/);
-                const bMatch = b.match(/(\D*)(\d+)(.*)/);
-                if (aMatch && bMatch) {
-                    const aNum = parseInt(aMatch[2]);
-                    const bNum = parseInt(bMatch[2]);
-                    if (aNum !== bNum) return aNum - bNum;
-                    return (
-                        aMatch[1].localeCompare(bMatch[1]) ||
-                        aMatch[3].localeCompare(bMatch[3])
-                    );
-                }
-                return a.localeCompare(b);
-            }
+      function sortConditions(a, b) {
+        const order = ["none", "minimap", "overview"];
+        return order.indexOf(a.toLowerCase()) - order.indexOf(b.toLowerCase());
+      }
 
-            function sortConditions(a, b) {
-                const order = ["none", "minimap", "overview"];
-                return (
-                    order.indexOf(a.toLowerCase()) -
-                    order.indexOf(b.toLowerCase())
-                );
-            }
+      function createFilterElements() {
+        createCheckboxGroup("typeFilters", availableTypes, "type");
+        createCheckboxGroup(
+          "participantFilters",
+          availableParticipants,
+          "participant",
+        );
+        createCheckboxGroup("contentFilters", availableContent, "content");
+        const conditionDisplayMap = {
+          none: "Baseline",
+          minimap: "Mini-map",
+          overview: "Dynamic Context",
+        };
+        createCheckboxGroup(
+          "conditionFilters",
+          availableConditions,
+          "condition",
+          conditionDisplayMap,
+        );
+        const questionDisplayMap = {
+          Q1: "Q1 (treemap)",
+          Q2: "Q2 (100% stacked bar)",
+          Q3: "Q3 (histogram)",
+          Q4: "Q4 (choropleth)",
+          Q5: "Q5 (pie)",
+          Q6: "Q6 (bubble)",
+          Q7: "Q7 (stacked bar)",
+          Q8: "Q8 (line)",
+          Q9: "Q9 (bar)",
+          Q10: "Q10 (area)",
+          Q11: "Q11 (stacked area)",
+          Q12: "Q12 (scatter)",
+        };
+        createCheckboxGroup(
+          "questionFilters",
+          availableQuestions,
+          "question",
+          questionDisplayMap,
+        );
+      }
 
-            function createFilterElements() {
-                createCheckboxGroup("typeFilters", availableTypes, "type");
-                createCheckboxGroup(
-                    "participantFilters",
-                    availableParticipants,
-                    "participant",
-                );
-                createCheckboxGroup(
-                    "contentFilters",
-                    availableContent,
-                    "content",
-                );
-                const conditionDisplayMap = {
-                    none: "Baseline",
-                    minimap: "Mini-map",
-                    overview: "Dynamic Context",
-                };
-                createCheckboxGroup(
-                    "conditionFilters",
-                    availableConditions,
-                    "condition",
-                    conditionDisplayMap,
-                );
-                const questionDisplayMap = {
-                    Q1: "Q1 (treemap)",
-                    Q2: "Q2 (100% stacked bar)",
-                    Q3: "Q3 (histogram)",
-                    Q4: "Q4 (choropleth)",
-                    Q5: "Q5 (pie)",
-                    Q6: "Q6 (bubble)",
-                    Q7: "Q7 (stacked bar)",
-                    Q8: "Q8 (line)",
-                    Q9: "Q9 (bar)",
-                    Q10: "Q10 (area)",
-                    Q11: "Q11 (stacked area)",
-                    Q12: "Q12 (scatter)",
-                };
-                createCheckboxGroup(
-                    "questionFilters",
-                    availableQuestions,
-                    "question",
-                    questionDisplayMap,
-                );
-            }
+      function createCheckboxGroup(
+        containerId,
+        values,
+        filterType,
+        displayNameMap,
+      ) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        values.forEach((value) => {
+          const checkboxItem = document.createElement("div");
+          checkboxItem.className = "checkbox-item";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.id = `${filterType}_${value}`;
+          checkbox.value = value;
+          checkbox.checked = true;
+          checkbox.onchange = applyFilters;
+          const label = document.createElement("label");
+          label.htmlFor = checkbox.id;
+          label.textContent = displayNameMap
+            ? displayNameMap[value] || value
+            : value;
+          checkboxItem.appendChild(checkbox);
+          checkboxItem.appendChild(label);
+          container.appendChild(checkboxItem);
+        });
+      }
 
-            function createCheckboxGroup(
-                containerId,
-                values,
-                filterType,
-                displayNameMap,
-            ) {
-                const container = document.getElementById(containerId);
-                container.innerHTML = "";
-                values.forEach((value) => {
-                    const checkboxItem = document.createElement("div");
-                    checkboxItem.className = "checkbox-item";
-                    const checkbox = document.createElement("input");
-                    checkbox.type = "checkbox";
-                    checkbox.id = `${filterType}_${value}`;
-                    checkbox.value = value;
-                    checkbox.checked = true;
-                    checkbox.onchange = applyFilters;
-                    const label = document.createElement("label");
-                    label.htmlFor = checkbox.id;
-                    label.textContent = displayNameMap
-                        ? displayNameMap[value] || value
-                        : value;
-                    checkboxItem.appendChild(checkbox);
-                    checkboxItem.appendChild(label);
-                    container.appendChild(checkboxItem);
-                });
-            }
+      function applyFilters() {
+        const selectedTypes = getSelectedValues("typeFilters");
+        const selectedParticipants = getSelectedValues("participantFilters");
+        const selectedContent = getSelectedValues("contentFilters");
+        const selectedConditions = getSelectedValues("conditionFilters");
+        const selectedQuestions = getSelectedValues("questionFilters");
+        filteredData = allData.filter((item) => {
+          return (
+            selectedTypes.includes(item.Type) &&
+            selectedParticipants.includes(item.ParticipantID) &&
+            selectedContent.includes(item.Content) &&
+            selectedConditions.includes(item.Condition) &&
+            selectedQuestions.includes(item.QuestionID)
+          );
+        });
 
-            function applyFilters() {
-                const selectedTypes = getSelectedValues("typeFilters");
-                const selectedParticipants =
-                    getSelectedValues("participantFilters");
-                const selectedContent = getSelectedValues("contentFilters");
-                const selectedConditions =
-                    getSelectedValues("conditionFilters");
-                const selectedQuestions = getSelectedValues("questionFilters");
-                filteredData = allData.filter((item) => {
-                    return (
-                        selectedTypes.includes(item.Type) &&
-                        selectedParticipants.includes(item.ParticipantID) &&
-                        selectedContent.includes(item.Content) &&
-                        selectedConditions.includes(item.Condition) &&
-                        selectedQuestions.includes(item.QuestionID)
-                    );
-                });
+        // Also filter full interactions data
+        filteredInteractionsData = fullInteractionsData.filter((item) => {
+          return (
+            selectedParticipants.includes(item.ParticipantID) &&
+            selectedContent.includes(item.Content) &&
+            selectedConditions.includes(item.Condition) &&
+            selectedQuestions.includes(item.QuestionID)
+          );
+        });
 
-                // Also filter full interactions data
-                filteredInteractionsData = fullInteractionsData.filter(
-                    (item) => {
-                        return (
-                            selectedParticipants.includes(item.ParticipantID) &&
-                            selectedContent.includes(item.Content) &&
-                            selectedConditions.includes(item.Condition) &&
-                            selectedQuestions.includes(item.QuestionID)
-                        );
-                    },
-                );
+        updateDisplay();
+      }
 
-                updateDisplay();
-            }
+      function getSelectedValues(containerId) {
+        const container = document.getElementById(containerId);
+        const checkboxes = container.querySelectorAll(
+          'input[type="checkbox"]:checked',
+        );
+        return Array.from(checkboxes).map((cb) => cb.value);
+      }
 
-            function getSelectedValues(containerId) {
-                const container = document.getElementById(containerId);
-                const checkboxes = container.querySelectorAll(
-                    'input[type="checkbox"]:checked',
-                );
-                return Array.from(checkboxes).map((cb) => cb.value);
-            }
+      function updateDisplay() {
+        const gallery = document.getElementById("gallery");
+        const resultsCount = document.getElementById("resultsCount");
+        const vizCount = document.getElementById("vizCount");
+        const recordCount = document.getElementById("recordCount");
+        const resultsAnnouncement = document.getElementById(
+          "resultsAnnouncement",
+        );
 
-            function updateDisplay() {
-                const gallery = document.getElementById("gallery");
-                const resultsCount = document.getElementById("resultsCount");
-                const vizCount = document.getElementById("vizCount");
-                const recordCount = document.getElementById("recordCount");
-                const resultsAnnouncement = document.getElementById(
-                    "resultsAnnouncement",
-                );
+        const uniqueRecords = new Set();
+        filteredData.forEach((item) => {
+          const key = `${item.ParticipantID}-${item.Condition}-${item.QuestionID}-${item.Content}`;
+          uniqueRecords.add(key);
+        });
+        const numRecords = uniqueRecords.size;
 
-                const uniqueRecords = new Set();
-                filteredData.forEach((item) => {
-                    const key = `${item.ParticipantID}-${item.Condition}-${item.QuestionID}-${item.Content}`;
-                    uniqueRecords.add(key);
-                });
-                const numRecords = uniqueRecords.size;
+        vizCount.textContent = filteredData.length;
+        recordCount.textContent = numRecords;
+        const countText = `${filteredData.length} visualization${filteredData.length !== 1 ? "s" : ""} from ${numRecords} record${numRecords !== 1 ? "s" : ""}`;
+        resultsCount.textContent = "";
+        resultsAnnouncement.textContent = countText;
 
-                vizCount.textContent = filteredData.length;
-                recordCount.textContent = numRecords;
-                const countText = `${filteredData.length} visualization${filteredData.length !== 1 ? "s" : ""} from ${numRecords} record${numRecords !== 1 ? "s" : ""}`;
-                resultsCount.textContent = "";
-                resultsAnnouncement.textContent = countText;
+        if (filteredData.length === 0) {
+          gallery.innerHTML =
+            '<div class="no-results"><h3>No results found</h3><p>Try adjusting your filters.</p></div>';
+          return;
+        }
 
-                if (filteredData.length === 0) {
-                    gallery.innerHTML =
-                        '<div class="no-results"><h3>No results found</h3><p>Try adjusting your filters.</p></div>';
-                    return;
-                }
+        const sortedData = [...filteredData].sort((a, b) => {
+          let qCompare =
+            currentSortBy === "questionorder"
+              ? (parseInt(a.QuestionOrder) || 0) -
+                (parseInt(b.QuestionOrder) || 0)
+              : naturalSort(a.QuestionID, b.QuestionID);
+          if (qCompare !== 0) return qCompare;
+          const pCompare = naturalSort(a.ParticipantID, b.ParticipantID);
+          if (pCompare !== 0) return pCompare;
+          const cCompare = sortConditions(a.Condition, b.Condition);
+          return cCompare !== 0 ? cCompare : a.Type.localeCompare(b.Type);
+        });
 
-                const sortedData = [...filteredData].sort((a, b) => {
-                    let qCompare =
-                        currentSortBy === "questionorder"
-                            ? (parseInt(a.QuestionOrder) || 0) -
-                              (parseInt(b.QuestionOrder) || 0)
-                            : naturalSort(a.QuestionID, b.QuestionID);
-                    if (qCompare !== 0) return qCompare;
-                    const pCompare = naturalSort(
-                        a.ParticipantID,
-                        b.ParticipantID,
-                    );
-                    if (pCompare !== 0) return pCompare;
-                    const cCompare = sortConditions(a.Condition, b.Condition);
-                    return cCompare !== 0
-                        ? cCompare
-                        : a.Type.localeCompare(b.Type);
-                });
+        gallery.innerHTML = "";
+        sortedData.forEach((item) =>
+          gallery.appendChild(createImageCard(item)),
+        );
+      }
 
-                gallery.innerHTML = "";
-                sortedData.forEach((item) =>
-                    gallery.appendChild(createImageCard(item)),
-                );
-            }
-
-            function createImageCard(item) {
-                const card = document.createElement("div");
-                card.className = "image-card";
-                card.setAttribute("role", "article");
-                const typeLabel = item.Type.replace(/([A-Z])/g, " $1").trim();
-                const conditionDisplay =
-                    item.Condition === "none"
-                        ? "Baseline"
-                        : item.Condition === "minimap"
-                          ? "Mini-map"
-                          : item.Condition === "overview"
-                            ? "Dynamic Context"
-                            : item.Condition;
-                const altText = `${typeLabel} visualization for participant ${item.ParticipantID}, question ${item.QuestionID}, condition: ${conditionDisplay}`;
-                card.innerHTML = `
-                <div class="image-container">
+      function createImageCard(item) {
+        const card = document.createElement("div");
+        card.className = "image-card";
+        card.setAttribute("role", "article");
+        const typeLabel = item.Type.replace(/([A-Z])/g, " $1").trim();
+        const conditionDisplay =
+          item.Condition === "none"
+            ? "Baseline"
+            : item.Condition === "minimap"
+              ? "Mini-map"
+              : item.Condition === "overview"
+                ? "Dynamic Context"
+                : item.Condition;
+        const altText = `${typeLabel} visualization for participant ${item.ParticipantID}, question ${item.QuestionID}, condition: ${conditionDisplay}`;
+        card.innerHTML = `
+                <div class="image-container loading">
                     <button type="button" class="image-button" aria-label="View full-size ${altText}" onclick="openModal('cursor-imaging/${item.Filename}')">
-                        <img src="cursor-imaging/${item.Filename}" alt="${altText}" role="presentation">
+                        <img data-src="cursor-imaging/${item.Filename}" alt="${altText}" role="presentation">
                         <div class="image-overlay"></div>
                     </button>
                 </div>
@@ -1781,144 +1744,144 @@
                     <div class="condition-badge ${item.Condition.toLowerCase()}">${conditionDisplay}</div>
                 </div>
             `;
-                return card;
-            }
+        return card;
+      }
 
-            function selectAllFilters() {
-                document
-                    .querySelectorAll('.checkbox-group input[type="checkbox"]')
-                    .forEach((cb) => (cb.checked = true));
-                applyFilters();
-            }
-            function clearAllFilters() {
-                document
-                    .querySelectorAll('.checkbox-group input[type="checkbox"]')
-                    .forEach((cb) => (cb.checked = false));
-                applyFilters();
-            }
-            function selectAllInGroup(groupId) {
-                document
-                    .getElementById(groupId)
-                    .querySelectorAll('input[type="checkbox"]')
-                    .forEach((cb) => (cb.checked = true));
-                applyFilters();
-            }
-            function clearAllInGroup(groupId) {
-                document
-                    .getElementById(groupId)
-                    .querySelectorAll('input[type="checkbox"]')
-                    .forEach((cb) => (cb.checked = false));
-                applyFilters();
-            }
-            function changeSortOrder() {
-                currentSortBy = document.getElementById("sortBy").value;
-                updateDisplay();
-            }
-            function changeGridSize() {
-                const gallery = document.getElementById("gallery");
-                const size = document.getElementById("gridSize").value;
-                gallery.className = `gallery grid-${size}`;
-            }
+      function selectAllFilters() {
+        document
+          .querySelectorAll('.checkbox-group input[type="checkbox"]')
+          .forEach((cb) => (cb.checked = true));
+        applyFilters();
+      }
+      function clearAllFilters() {
+        document
+          .querySelectorAll('.checkbox-group input[type="checkbox"]')
+          .forEach((cb) => (cb.checked = false));
+        applyFilters();
+      }
+      function selectAllInGroup(groupId) {
+        document
+          .getElementById(groupId)
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((cb) => (cb.checked = true));
+        applyFilters();
+      }
+      function clearAllInGroup(groupId) {
+        document
+          .getElementById(groupId)
+          .querySelectorAll('input[type="checkbox"]')
+          .forEach((cb) => (cb.checked = false));
+        applyFilters();
+      }
+      function changeSortOrder() {
+        currentSortBy = document.getElementById("sortBy").value;
+        updateDisplay();
+      }
+      function changeGridSize() {
+        const gallery = document.getElementById("gallery");
+        const size = document.getElementById("gridSize").value;
+        gallery.className = `gallery grid-${size}`;
+      }
 
-            // Download functionality
-            function generateCSV(data) {
-                if (data.length === 0) {
-                    alert("No data to download");
-                    return null;
-                }
+      // Download functionality
+      function generateCSV(data) {
+        if (data.length === 0) {
+          alert("No data to download");
+          return null;
+        }
 
-                // Get all unique headers from the data
-                const headers = new Set();
-                data.forEach((item) => {
-                    Object.keys(item).forEach((key) => headers.add(key));
-                });
-                const headerArray = Array.from(headers).sort();
+        // Get all unique headers from the data
+        const headers = new Set();
+        data.forEach((item) => {
+          Object.keys(item).forEach((key) => headers.add(key));
+        });
+        const headerArray = Array.from(headers).sort();
 
-                // Create CSV content
-                const csvLines = [];
-                csvLines.push(headerArray.map((h) => `"${h}"`).join(","));
+        // Create CSV content
+        const csvLines = [];
+        csvLines.push(headerArray.map((h) => `"${h}"`).join(","));
 
-                data.forEach((row) => {
-                    const values = headerArray.map((header) => {
-                        const value = row[header] || "";
-                        return `"${value}"`;
-                    });
-                    csvLines.push(values.join(","));
-                });
+        data.forEach((row) => {
+          const values = headerArray.map((header) => {
+            const value = row[header] || "";
+            return `"${value}"`;
+          });
+          csvLines.push(values.join(","));
+        });
 
-                return csvLines.join("\n");
-            }
+        return csvLines.join("\n");
+      }
 
-            function downloadFile(content, filename) {
-                if (!content) return;
-                const blob = new Blob([content], {
-                    type: "text/csv;charset=utf-8;",
-                });
-                const link = document.createElement("a");
-                const url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", filename);
-                link.style.visibility = "hidden";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            }
+      function downloadFile(content, filename) {
+        if (!content) return;
+        const blob = new Blob([content], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
 
-            function downloadFilteredData() {
-                if (filteredInteractionsData.length === 0) {
-                    alert(
-                        "No data to download. Apply filters that return results first.",
-                    );
-                    return;
-                }
+      function downloadFilteredData() {
+        if (filteredInteractionsData.length === 0) {
+          alert(
+            "No data to download. Apply filters that return results first.",
+          );
+          return;
+        }
 
-                try {
-                    const csv = generateCSV(filteredInteractionsData);
-                    const timestamp = new Date()
-                        .toISOString()
-                        .slice(0, 19)
-                        .replace(/:/g, "-");
-                    downloadFile(csv, `filtered-interactions-${timestamp}.csv`);
+        try {
+          const csv = generateCSV(filteredInteractionsData);
+          const timestamp = new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace(/:/g, "-");
+          downloadFile(csv, `filtered-interactions-${timestamp}.csv`);
 
-                    // Show confirmation
-                    const message = `✓ Downloaded ${filteredInteractionsData.length} records - filtered-interactions-${timestamp}.csv`;
-                    console.log(message);
-                    showDownloadNotification(message);
-                } catch (error) {
-                    console.error("Download error:", error);
-                    alert("Error downloading file. Please try again.");
-                }
-            }
+          // Show confirmation
+          const message = `✓ Downloaded ${filteredInteractionsData.length} records - filtered-interactions-${timestamp}.csv`;
+          console.log(message);
+          showDownloadNotification(message);
+        } catch (error) {
+          console.error("Download error:", error);
+          alert("Error downloading file. Please try again.");
+        }
+      }
 
-            function downloadAllData() {
-                if (fullInteractionsData.length === 0) {
-                    alert("No data available to download");
-                    return;
-                }
+      function downloadAllData() {
+        if (fullInteractionsData.length === 0) {
+          alert("No data available to download");
+          return;
+        }
 
-                try {
-                    const csv = generateCSV(fullInteractionsData);
-                    const timestamp = new Date()
-                        .toISOString()
-                        .slice(0, 19)
-                        .replace(/:/g, "-");
-                    downloadFile(csv, `all-interactions-${timestamp}.csv`);
+        try {
+          const csv = generateCSV(fullInteractionsData);
+          const timestamp = new Date()
+            .toISOString()
+            .slice(0, 19)
+            .replace(/:/g, "-");
+          downloadFile(csv, `all-interactions-${timestamp}.csv`);
 
-                    // Show confirmation
-                    const message = `✓ Downloaded complete dataset: ${fullInteractionsData.length} records - all-interactions-${timestamp}.csv`;
-                    console.log(message);
-                    showDownloadNotification(message);
-                } catch (error) {
-                    console.error("Download error:", error);
-                    alert("Error downloading file. Please try again.");
-                }
-            }
+          // Show confirmation
+          const message = `✓ Downloaded complete dataset: ${fullInteractionsData.length} records - all-interactions-${timestamp}.csv`;
+          console.log(message);
+          showDownloadNotification(message);
+        } catch (error) {
+          console.error("Download error:", error);
+          alert("Error downloading file. Please try again.");
+        }
+      }
 
-            function showDownloadNotification(message) {
-                // Create temporary notification
-                const notification = document.createElement("div");
-                notification.style.cssText = `
+      function showDownloadNotification(message) {
+        // Create temporary notification
+        const notification = document.createElement("div");
+        notification.style.cssText = `
                 position: fixed;
                 bottom: 2rem;
                 right: 2rem;
@@ -1932,12 +1895,12 @@
                 max-width: 300px;
                 animation: slideInUp 0.3s ease-out;
             `;
-                notification.textContent = message;
-                document.body.appendChild(notification);
+        notification.textContent = message;
+        document.body.appendChild(notification);
 
-                // Add animation
-                const style = document.createElement("style");
-                style.textContent = `
+        // Add animation
+        const style = document.createElement("style");
+        style.textContent = `
                 @keyframes slideInUp {
                     from {
                         transform: translateY(20px);
@@ -1949,41 +1912,97 @@
                     }
                 }
             `;
-                document.head.appendChild(style);
+        document.head.appendChild(style);
 
-                // Remove notification after 4 seconds
-                setTimeout(() => {
-                    notification.style.animation =
-                        "slideInUp 0.3s ease-out reverse";
-                    setTimeout(() => {
-                        document.body.removeChild(notification);
-                    }, 300);
-                }, 4000);
-            }
+        // Remove notification after 4 seconds
+        setTimeout(() => {
+          notification.style.animation = "slideInUp 0.3s ease-out reverse";
+          setTimeout(() => {
+            document.body.removeChild(notification);
+          }, 300);
+        }, 4000);
+      }
 
-            let previouslyFocusedElement = null;
-            function openModal(src) {
-                const modal = document.getElementById("imageModal");
-                previouslyFocusedElement = document.activeElement;
-                modal.setAttribute("aria-hidden", "false");
-                document.getElementById("modalImage").src = src;
-                document.querySelector(".modal-close").focus();
-            }
+      let previouslyFocusedElement = null;
+      function openModal(src) {
+        const modal = document.getElementById("imageModal");
+        previouslyFocusedElement = document.activeElement;
+        modal.setAttribute("aria-hidden", "false");
+        document.getElementById("modalImage").src = src;
+        document.querySelector(".modal-close").focus();
+      }
 
-            function closeModal() {
-                const modal = document.getElementById("imageModal");
-                modal.setAttribute("aria-hidden", "true");
-                if (previouslyFocusedElement) previouslyFocusedElement.focus();
-            }
+      function closeModal() {
+        const modal = document.getElementById("imageModal");
+        modal.setAttribute("aria-hidden", "true");
+        if (previouslyFocusedElement) previouslyFocusedElement.focus();
+      }
 
-            document.getElementById("imageModal").onclick = function (event) {
-                if (event.target === this) closeModal();
-            };
-            document.addEventListener("keydown", function (event) {
-                if (event.key === "Escape") closeModal();
+      document.getElementById("imageModal").onclick = function (event) {
+        if (event.target === this) closeModal();
+      };
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeModal();
+      });
+
+      // ============================================================
+      // LAZY LOADING - Images load when scrolled into view
+      // ============================================================
+      function initializeLazyLoading() {
+        const imageObserver = new IntersectionObserver(
+          (entries, observer) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.getAttribute("data-src");
+                if (src) {
+                  // Create a new image to preload
+                  const preloadImg = new Image();
+                  preloadImg.onload = () => {
+                    img.src = src;
+                    img.removeAttribute("data-src");
+                    img.classList.add("loaded");
+                    const container = img.closest(".image-container");
+                    if (container) {
+                      container.classList.remove("loading");
+                    }
+                    observer.unobserve(img);
+                  };
+                  preloadImg.onerror = () => {
+                    // Fallback: still set src even if preload fails
+                    img.src = src;
+                    img.removeAttribute("data-src");
+                    img.classList.add("loaded");
+                    const container = img.closest(".image-container");
+                    if (container) {
+                      container.classList.remove("loading");
+                    }
+                    observer.unobserve(img);
+                  };
+                  preloadImg.src = src;
+                }
+              }
             });
+          },
+          {
+            rootMargin: "50px", // Start loading 50px before image enters viewport
+          },
+        );
 
-            loadData();
-        </script>
-    </body>
+        // Observe all images with data-src attribute
+        document
+          .querySelectorAll(".image-container img[data-src]")
+          .forEach((img) => imageObserver.observe(img));
+      }
+
+      // Initialize lazy loading when data is loaded and displayed
+      const originalUpdateDisplay = updateDisplay;
+      updateDisplay = function () {
+        originalUpdateDisplay.call(this);
+        initializeLazyLoading();
+      };
+
+      loadData();
+    </script>
+  </body>
 </html>
