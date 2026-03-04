@@ -2,6 +2,8 @@
 
 This repository contains a data library for cursor tracking records and analysis with an interactive web interface for filtering, exploring, and exporting user interaction records.
 
+![Screenshot of the interactive catalog interface showing filter options and visualization gallery](catalog-screenshot.png)
+
 ## Project Overview
 
 This dataset represents cursor movement data collected from a study on improving low-vision chart accessibility via on-cursor visual context. The data includes detailed interaction tracking and visualization artifacts from participants with varying visual abilities. The data is collected over three conditions: the **baseline** (using their own assistive tools), **Mini-map** an augmentation of a small overview around the cursor (with their own assistive tools), and **Dynamic Context**, an enhanced on-cursor visual context condition (with their own assistive tools). The dataset includes full cursor interaction records and time-weighted heatmaps and trajectories visualizations.
@@ -29,7 +31,7 @@ This file contains the primary dataset of user interactions captured during the 
 | **MagnifierUser** | Boolean | Whether the participant uses a magnifier device (yes/no) |
 | **ZoomLevel** | String | Zoom/magnification level settings (e.g., "low", "medium", "high"); low: < x2, medium: < x4, high: >= x4 |
 | **Familiarity** | Integer | Self-reported familiarity score with charts (numeric scale, 1-5) |
-*Condition** | String | Experimental condition applied during this interaction (e.g., "none", "minimap", "overview"); overview refers to Dynamic Context |
+| **Condition** | String | Experimental condition applied during this interaction (e.g., "none", "minimap", "overview"); overview refers to Dynamic Context |
 | **Content** | String | Content version of the test (e.g., "v0", "v1", "v2") |
 | **QuestionID** | String | Identifier for the specific question/task being performed (e.g., "Q1", "Q5", "Q10", "Q11") |
 | **Timestamp** | Integer | Unix timestamp (milliseconds) of the interaction event |
