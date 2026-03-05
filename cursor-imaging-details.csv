@@ -1,4 +1,4 @@
-ParticipantID,Condition,Content,QuestionID,Heatmap,Contour,TimeWeighted,FixationMap,Scanpath
+ParticipantID,Condition,Content,QuestionID,TimeWeighted,Contour,Heatmap,FixationMap,Scanpath
 P1,minimap,v2,Q1,,,timeweighted_P1_v2_Q1.png,,scanpath_P1_v2_Q1.png
 P1,minimap,v2,Q10,,,timeweighted_P1_v2_Q10.png,,scanpath_P1_v2_Q10.png
 P1,minimap,v2,Q11,,,timeweighted_P1_v2_Q11.png,,scanpath_P1_v2_Q11.png

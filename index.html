@@ -115,6 +115,37 @@
         font-weight: 700;
         margin: 0;
         letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .info-button {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: var(--transition);
+        flex-shrink: 0;
+      }
+
+      .info-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .info-button:focus-visible {
+        outline: 2px solid white;
+        outline-offset: 2px;
       }
 
       .header-content p {
@@ -740,6 +771,100 @@
         outline-offset: 2px;
       }
 
+      .info-modal .modal-content {
+        background: var(--bg-primary);
+        border-radius: 12px;
+        padding: 0;
+        max-width: 600px;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        animation: slideUp 0.3s ease-out;
+      }
+
+      .info-modal-header {
+        padding: 2rem 2rem 1rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .info-modal-header h2 {
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        margin: 0;
+      }
+
+      .info-modal-close {
+        position: static;
+        background: transparent;
+        border: none;
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        transition: var(--transition);
+        padding: 0;
+        border-radius: 6px;
+      }
+
+      .info-modal-close:hover {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+      }
+
+      .info-modal-close:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      .info-modal-body {
+        padding: 0 2rem 2rem;
+        overflow-y: auto;
+        flex: 1;
+        color: var(--text-primary);
+      }
+
+      .info-modal-body h3 {
+        font-size: 1.1rem;
+        margin: 1.5rem 0 0.75rem;
+        color: var(--text-primary);
+      }
+
+      .info-modal-body h3:first-child {
+        margin-top: 0;
+      }
+
+      .info-modal-body p {
+        margin: 0.75rem 0;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+      }
+
+      .info-modal-body ul {
+        margin: 0.75rem 0 0.75rem 1.5rem;
+        padding: 0;
+      }
+
+      .info-modal-body li {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+      }
+
+      .info-modal-body strong {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
       .btn {
         padding: 0.75rem 1.5rem;
         border: none;
@@ -921,7 +1046,18 @@
     <header class="header" role="banner">
       <div class="header-container">
         <div class="header-content">
-          <h1><span aria-hidden="true">📊</span> Cursor Trajectories</h1>
+          <h1>
+            Cursor Trajectories
+            <button
+              type="button"
+              class="info-button"
+              onclick="openInfoModal()"
+              aria-label="Open information about this catalog"
+              title="Learn about this data library"
+            >
+              ?
+            </button>
+          </h1>
           <p>
             Data library for cursor tracking analysis with filtering and export
             functionality
@@ -969,15 +1105,15 @@
                   line-height: 1.4;
                 "
               >
-                <strong><span aria-hidden="true">💡</span> Tip:</strong> Filter
-                and download your data easily.
+                <strong>Tip:</strong> You can filter
+                and download the data easily.
               </p>
             </div>
           </div>
 
           <!-- download control section inserted above filters -->
           <div class="sidebar-section">
-            <div class="sidebar-title" style="justify-content:flex-start;">📥 Download</div>
+            <div class="sidebar-title" style="justify-content:flex-start;">Download</div>
             <p
               style="
                 font-size: 0.8rem;
@@ -996,7 +1132,7 @@
                 title="Download filtered results as CSV with records deduplication"
                 style="width: 100%; justify-content: center"
               >
-                📥 Filtered Data
+                Filtered Data
               </button>
               <button
                 type="button"
@@ -1006,7 +1142,7 @@
                 title="Download complete dataset as CSV with all records"
                 style="width: 100%; justify-content: center"
               >
-                📥 Full Dataset
+                Full Dataset
               </button>
             </div>
           </div>
@@ -1037,13 +1173,13 @@
             <div class="filter-group"><div class="checkbox-group" id="typeFilters" role="group" aria-labelledby="typeFilterLabel"></div>
           </div>
             <details>
-              <summary style="cursor: pointer; font-weight:700;">📝 Visualization notes</summary>
+              <summary style="cursor: pointer; font-weight:700;">Visualization notes</summary>
               <p style="margin:0.5rem 0; font-size:0.85rem;">
-                Scanpaths are time-aligned: blue marks the start of the movement and red the end. Colors transition through the
+                <strong>Scanpaths</strong> are time-aligned: blue marks the start of the movement and red the end. Colors transition through the
                 spectrum as time progresses.
               </p>
               <p style="margin:0.5rem 0; font-size:0.85rem;">
-                Heatmaps are <em>time-weighted</em>, meaning earlier and later fixations contribute according to their duration;
+                <strong>Heatmaps</strong> are <em>time-weighted</em>, meaning earlier and later fixations contribute according to their duration;
                 brighter areas indicate locations where gaze lingered longer over the course of the trial.
               </p>
             </details>
@@ -1296,6 +1432,77 @@
     </div>
 
     <div
+      id="infoModal"
+      class="modal info-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="infoModalTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-content">
+        <div class="info-modal-header">
+          <h2 id="infoModalTitle">About This Dataset</h2>
+          <button
+            type="button"
+            class="info-modal-close"
+            onclick="closeInfoModal()"
+            aria-label="Close information panel"
+          >
+            ×
+          </button>
+        </div>
+        <div class="info-modal-body">
+          <h3>📊 What is This?</h3>
+          <p>
+            This is a data library for cursor tracking records collected during a study on improving low-vision chart accessibility. The dataset includes cursor movement data from participants with varying visual abilities across three experimental conditions.
+          </p>
+
+          <h3>🔬 The Three Conditions</h3>
+          <ul>
+            <li><strong>Baseline:</strong> Participants using their own assistive tools</li>
+            <li><strong>Mini-map:</strong> A small overview visualization around the cursor</li>
+            <li><strong>Dynamic Context:</strong> Enhanced on-cursor visual context augmentation</li>
+          </ul>
+
+          <h3>📈 What's Included</h3>
+          <ul>
+            <li>Full cursor interaction records with millisecond precision</li>
+            <li>Visualization images (heatmaps, scanpaths)</li>
+            <li>Participant demographic information (in the raw data)</li>
+          </ul>
+
+          <h3>🎯 How to Use</h3>
+          <p><strong>Filter:</strong> Use the sidebar to filter by visualization type, participant, content, condition, or question.</p>
+          <p><strong>Explore:</strong> Click any visualization card to view a full-size image.</p>
+          <p><strong>Download:</strong> Export filtered results or the complete dataset as CSV files.</p>
+
+          <h3>👁️ Visualization Types</h3>
+          <ul>
+            <li><strong>Scanpath:</strong> Blue-to-red time-aligned cursor trajectories showing movement order</li>
+            <li><strong>Heatmap:</strong> Time-weighted visualization showing cursor dwell time</li>
+          </ul>
+
+          <h3>📝 Data Fields</h3>
+          <p>The dataset includes:</p>
+          <ul>
+            <li>Participant ID and demographic information</li>
+            <li>Visual acuity, visual field, and vision condition type</li>
+            <li>Experimental condition and content version</li>
+            <li>Question/task identifier</li>
+            <li>Cursor X/Y coordinates (normalized 0.0–1.0)</li>
+            <li>Millisecond-precision timestamps</li>
+          </ul>
+
+          <h3>🔗 Learn More</h3>
+          <p>
+            For the full publication and more details, visit the
+            <a href="https://visual-context.github.io/" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; font-weight: 600;">Visual Context Project Page →</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div
       id="imageModal"
       class="modal"
       role="dialog"
@@ -1538,11 +1745,7 @@
             row[header] = values[index] || "";
           });
           const types = [
-            "Heatmap",
-            "Contour",
-            "TimeWeighted",
-            "FixationMap",
-            "Scanpath",
+            "TimeWeighted", "Contour", "Heatmap", "FixationMap", "Scanpath"
           ];
           types.forEach((type) => {
             if (row[type] && row[type] !== "") {
@@ -2069,13 +2272,46 @@
         if (previouslyFocusedElement) previouslyFocusedElement.focus();
       }
 
+      document.getElementById("infoModal").onclick = function (event) {
+        if (event.target === this) closeInfoModal();
+      };
+
+      let infoModalFocused = null;
+      function openInfoModal() {
+        const modal = document.getElementById("infoModal");
+        infoModalFocused = document.activeElement;
+        modal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        // Focus close button
+        const closeBtn = document.querySelector(".info-modal-close");
+        closeBtn.focus();
+      }
+
+      function closeInfoModal() {
+        const modal = document.getElementById("infoModal");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        if (infoModalFocused) infoModalFocused.focus();
+      }
+
+      // Close info modal on Escape key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          const infoModal = document.getElementById("infoModal");
+          if (infoModal && infoModal.getAttribute("aria-hidden") === "false") {
+            closeInfoModal();
+          }
+        }
+      });
+
+      // Image modal click handler
       document.getElementById("imageModal").onclick = function (event) {
         if (event.target === this) closeModal();
       };
       document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
           const modal = document.getElementById("imageModal");
-          if (modal.getAttribute("aria-hidden") === "false") {
+          if (modal && modal.getAttribute("aria-hidden") === "false") {
             closeModal();
           }
         }
@@ -2084,6 +2320,34 @@
       // Improved focus trap for modal - only trap Tab/Shift+Tab
       document
         .getElementById("imageModal")
+        .addEventListener("keydown", function (event) {
+          if (
+            event.key === "Tab" &&
+            this.getAttribute("aria-hidden") === "false"
+          ) {
+            const focusableElements = this.querySelectorAll(
+              "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+            );
+            if (focusableElements.length === 0) return;
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (event.shiftKey && document.activeElement === firstElement) {
+              event.preventDefault();
+              lastElement.focus();
+            } else if (
+              !event.shiftKey &&
+              document.activeElement === lastElement
+            ) {
+              event.preventDefault();
+              firstElement.focus();
+            }
+          }
+        });
+
+      // Focus trap for info modal
+      document
+        .getElementById("infoModal")
         .addEventListener("keydown", function (event) {
           if (
             event.key === "Tab" &&
