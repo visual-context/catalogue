@@ -965,8 +965,57 @@
                   line-height: 1.4;
                 "
               >
-                <strong>💡 Tip:</strong> Filter and download your data easily. See the download buttons at the bottom of this section.
+                <strong>💡 Tip:</strong> Filter and download your data easily. Download controls appear at the top of the filters now.
               </p>
+            </div>
+          </div>
+
+          <!-- informational notes about visuals -->
+          <div class="sidebar-section">
+            <details>
+              <summary style="cursor: pointer; font-weight:700;">📝 Visualization notes</summary>
+              <p style="margin:0.5rem 0; font-size:0.85rem;">
+                Scanpaths are time-aligned: blue marks the start of the movement and red the end. Colors transition through the spectrum as time progresses.
+              </p>
+              <p style="margin:0.5rem 0; font-size:0.85rem;">
+                Heatmaps are <em>time-weighted</em>, meaning earlier and later fixations contribute according to their duration; brighter areas indicate locations where gaze lingered longer over the course of the trial.
+              </p>
+            </details>
+          </div>
+
+          <!-- download control section inserted above filters -->
+          <div class="sidebar-section">
+            <div class="sidebar-title" style="justify-content:flex-start;">📥 Download</div>
+            <p
+              style="
+                font-size: 0.8rem;
+                color: var(--text-tertiary);
+                margin-bottom: 0.75rem;
+              "
+            >
+              Export filtered or complete dataset as CSV
+            </p>
+            <div class="btn-group" style="flex-direction: column; width: 100%">
+              <button
+                type="button"
+                class="btn btn-primary"
+                onclick="downloadFilteredData()"
+                aria-label="Download current filtered results as CSV file"
+                title="Download filtered results as CSV with records deduplication"
+                style="width: 100%; justify-content: center"
+              >
+                📥 Filtered Data
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="downloadAllData()"
+                aria-label="Download complete dataset as CSV file"
+                title="Download complete dataset as CSV with all records"
+                style="width: 100%; justify-content: center"
+              >
+                📥 Full Dataset
+              </button>
             </div>
           </div>
 
@@ -1142,48 +1191,6 @@
             </div>
           </div>
 
-          <hr
-            style="
-              margin: 1.5rem 0;
-              border: none;
-              border-top: 1px solid var(--border);
-            "
-          />
-
-          <div class="sidebar-section">
-            <div class="sidebar-title">📥 Download</div>
-            <p
-              style="
-                font-size: 0.8rem;
-                color: var(--text-tertiary);
-                margin-bottom: 0.75rem;
-              "
-            >
-              Export filtered or complete dataset as CSV
-            </p>
-            <div class="btn-group" style="flex-direction: column; width: 100%">
-              <button
-                type="button"
-                class="btn btn-primary"
-                onclick="downloadFilteredData()"
-                aria-label="Download current filtered results as CSV file"
-                title="Download filtered results as CSV with records deduplication"
-                style="width: 100%; justify-content: center"
-              >
-                📥 Filtered Data
-              </button>
-              <button
-                type="button"
-                class="btn btn-secondary"
-                onclick="downloadAllData()"
-                aria-label="Download complete dataset as CSV file"
-                title="Download complete dataset as CSV with all records"
-                style="width: 100%; justify-content: center"
-              >
-                📥 Full Dataset
-              </button>
-            </div>
-          </div>
         </form>
       </aside>
 
