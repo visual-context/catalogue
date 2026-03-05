@@ -258,7 +258,7 @@
       .top-bar {
         background: var(--bg-primary);
         border-bottom: 1px solid var(--border);
-        padding: 1.5rem 2rem;
+        padding: 1rem 1rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -322,10 +322,14 @@
       }
 
       .legend-dot {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         border-radius: 3px;
         flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
       }
 
       .legend-dot.none {
@@ -339,6 +343,11 @@
       .legend-dot.overview {
         background: #4393dc;
       }
+      .color-legend .legend-item i {
+        font-size: 0.85rem;
+        margin: 0;
+      }
+      /* icons are now inside dots; color inherited from parent */
 
       .top-controls {
         display: flex;
@@ -573,17 +582,15 @@
       }
 
       .condition-badge {
-        padding: 0.75rem;
+        padding: 0.5rem 0.75rem;
         border-radius: 0;
-        font-size: 0;
+        font-size: 0; /* hide any stray text */
         font-weight: 700;
-        text-transform: capitalize;
-        color: transparent;
+        color: white;
         box-shadow: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-width: 100px;
       }
 
       .condition-badge.none {
@@ -597,13 +604,20 @@
       .condition-badge.overview {
         background: #4393dc;
       }
+      .condition-badge i {
+        font-size: 1rem;
+      }
+
+      .gallery.gallery.grid-large .condition-badge {
+        min-width: 80px;
+      }
 
       .gallery.gallery.grid-medium .condition-badge {
         min-width: 60px;
       }
 
       .gallery.grid-small .condition-badge {
-        min-width: 30px;
+        max-width: 20px;
       }
 
       .no-results {
@@ -970,19 +984,6 @@
             </div>
           </div>
 
-          <!-- informational notes about visuals -->
-          <div class="sidebar-section">
-            <details>
-              <summary style="cursor: pointer; font-weight:700;">📝 Visualization notes</summary>
-              <p style="margin:0.5rem 0; font-size:0.85rem;">
-                Scanpaths are time-aligned: blue marks the start of the movement and red the end. Colors transition through the spectrum as time progresses.
-              </p>
-              <p style="margin:0.5rem 0; font-size:0.85rem;">
-                Heatmaps are <em>time-weighted</em>, meaning earlier and later fixations contribute according to their duration; brighter areas indicate locations where gaze lingered longer over the course of the trial.
-              </p>
-            </details>
-          </div>
-
           <!-- download control section inserted above filters -->
           <div class="sidebar-section">
             <div class="sidebar-title" style="justify-content:flex-start;">📥 Download</div>
@@ -1043,8 +1044,20 @@
             </div>
             <div class="filter-group">
               <div class="checkbox-group" id="typeFilters" role="group"></div>
-            </div>
+            </div><!-- informational notes about visuals -->
+            <details>
+              <summary style="cursor: pointer; font-weight:700;">📝 Visualization notes</summary>
+              <p style="margin:0.5rem 0; font-size:0.85rem;">
+                Scanpaths are time-aligned: blue marks the start of the movement and red the end. Colors transition through the
+                spectrum as time progresses.
+              </p>
+              <p style="margin:0.5rem 0; font-size:0.85rem;">
+                Heatmaps are <em>time-weighted</em>, meaning earlier and later fixations contribute according to their duration;
+                brighter areas indicate locations where gaze lingered longer over the course of the trial.
+              </p>
+            </details>
           </div>
+          
 
           <div class="sidebar-section">
             <div class="sidebar-title">
@@ -1217,17 +1230,17 @@
                   <span class="stat-badge" id="recordCount">0</span>
                 </div>
                 <div class="color-legend">
-                  <span class="color-legend-title">Condition:</span>
+                  <span class="color-legend-title">Condition key:</span>
                   <div class="legend-item">
-                    <div class="legend-dot none"></div>
+                    <div class="legend-dot none"><i class="fas fa-circle" title="Baseline"></i></div>
                     <span>Baseline</span>
                   </div>
                   <div class="legend-item">
-                    <div class="legend-dot minimap"></div>
+                    <div class="legend-dot minimap"><i class="fas fa-map" title="Mini-map"></i></div>
                     <span>Mini-map</span>
                   </div>
                   <div class="legend-item">
-                    <div class="legend-dot overview"></div>
+                    <div class="legend-dot overview"><i class="fas fa-expand" title="Dynamic Context"></i></div>
                     <span>Dynamic Context</span>
                   </div>
                 </div>
@@ -1593,6 +1606,12 @@
           minimap: "Mini-map",
           overview: "Dynamic Context",
         };
+        // icons to accompany conditions wherever they appear
+        const conditionIconMap = {
+          none: "fa-circle",
+          minimap: "fa-map",
+          overview: "fa-expand",
+        };
         createCheckboxGroup(
           "conditionFilters",
           availableConditions,
@@ -1738,14 +1757,22 @@
         card.className = "image-card";
         card.setAttribute("role", "article");
         const typeLabel = item.Type.replace(/([A-Z])/g, " $1").trim();
+
+        const conditionDisplayMap = {
+          none: "Baseline",
+          minimap: "Mini-map",
+          overview: "Dynamic Context",
+        };
+        const conditionIconMap = {
+          none: "fa-circle",
+          minimap: "fa-map",
+          overview: "fa-expand",
+        };
+        const conditionKey = item.Condition.toLowerCase();
         const conditionDisplay =
-          item.Condition === "none"
-            ? "Baseline"
-            : item.Condition === "minimap"
-              ? "Mini-map"
-              : item.Condition === "overview"
-                ? "Dynamic Context"
-                : item.Condition;
+          conditionDisplayMap[conditionKey] || item.Condition;
+        const conditionIcon = conditionIconMap[conditionKey] || "";
+
         const altText = `${typeLabel} visualization for participant ${item.ParticipantID}, question ${item.QuestionID}, condition: ${conditionDisplay}`;
         card.innerHTML = `
                 <div class="image-container loading">
@@ -1760,7 +1787,9 @@
                         <div class="detail-item"><i class="fas fa-file"></i><span class="detail-value">${item.Content}</span></div>
                         <div class="detail-item"><i class="fas fa-circle-question"></i><span class="detail-value">${item.QuestionID}</span></div>
                     </div>
-                    <div class="condition-badge ${item.Condition.toLowerCase()}">${conditionDisplay}</div>
+                    <div class="condition-badge ${item.Condition.toLowerCase()}">
+                      <i class="fas ${conditionIcon}"><span class="sr-only">${conditionDisplay}</span></i>
+                    </div>
                 </div>
             `;
         return card;
