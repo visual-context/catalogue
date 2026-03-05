@@ -7,6 +7,7 @@
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      onerror="console.warn('Font Awesome CDN failed to load. Icons may not display correctly.')"
     />
     <style>
       * {
@@ -434,21 +435,7 @@
         flex-shrink: 0;
       }
 
-      .detail-item::before {
-        display: none;
-      }
-
-      .detail-item:nth-child(1)::before {
-        display: none;
-      }
-
-      .detail-item:nth-child(2)::before {
-        display: none;
-      }
-
-      .detail-item:nth-child(3)::before {
-        display: none;
-      }
+      /* Removed unnecessary ::before rules - no pseudo-elements needed */
 
       .detail-label {
         display: none;
@@ -608,11 +595,11 @@
         font-size: 1rem;
       }
 
-      .gallery.gallery.grid-large .condition-badge {
+      .gallery.grid-large .condition-badge {
         min-width: 80px;
       }
 
-      .gallery.gallery.grid-medium .condition-badge {
+      .gallery.grid-medium .condition-badge {
         min-width: 60px;
       }
 
@@ -1517,14 +1504,35 @@
 
       function parseCSV(text) {
         const lines = text.trim().split("\n");
-        const headers = lines[0]
-          .split(",")
-          .map((h) => h.trim().replace(/"/g, ""));
+        // Parse CSV with proper quote handling
+        function parseCSVLine(line) {
+          const result = [];
+          let current = "";
+          let insideQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            if (char === '"') {
+              if (insideQuotes && nextChar === '"') {
+                current += '"';
+                i++; // skip next quote
+              } else {
+                insideQuotes = !insideQuotes;
+              }
+            } else if (char === "," && !insideQuotes) {
+              result.push(current.trim());
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        }
+        const headers = parseCSVLine(lines[0]).map((h) => h.replace(/"/g, ""));
         const data = [];
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i]
-            .split(",")
-            .map((v) => v.trim().replace(/"/g, ""));
+          const values = parseCSVLine(lines[i]).map((v) => v.replace(/"/g, ""));
           const row = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || "";
@@ -1551,14 +1559,35 @@
 
       function parseFullInteractionsCSV(text) {
         const lines = text.trim().split("\n");
-        const headers = lines[0]
-          .split(",")
-          .map((h) => h.trim().replace(/"/g, ""));
+        // Parse CSV with proper quote handling
+        function parseCSVLine(line) {
+          const result = [];
+          let current = "";
+          let insideQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            const nextChar = line[i + 1];
+            if (char === '"') {
+              if (insideQuotes && nextChar === '"') {
+                current += '"';
+                i++; // skip next quote
+              } else {
+                insideQuotes = !insideQuotes;
+              }
+            } else if (char === "," && !insideQuotes) {
+              result.push(current.trim());
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        }
+        const headers = parseCSVLine(lines[0]).map((h) => h.replace(/"/g, ""));
         const data = [];
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i]
-            .split(",")
-            .map((v) => v.trim().replace(/"/g, ""));
+          const values = parseCSVLine(lines[i]).map((v) => v.replace(/"/g, ""));
           const row = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || "";
@@ -1901,14 +1930,16 @@
 
       function downloadFilteredData() {
         if (filteredInteractionsData.length === 0) {
-          alert(
-            "No data to download. Apply filters that return results first.",
+          showDownloadNotification(
+            "⚠️ No data to download. Apply filters that return results first.",
+            "warning",
           );
           return;
         }
 
         try {
           const csv = generateCSV(filteredInteractionsData);
+          if (!csv) return;
           const timestamp = new Date()
             .toISOString()
             .slice(0, 19)
@@ -1916,23 +1947,30 @@
           downloadFile(csv, `filtered-interactions-${timestamp}.csv`);
 
           // Show confirmation
-          const message = `✓ Downloaded ${filteredInteractionsData.length} records - filtered-interactions-${timestamp}.csv`;
+          const message = `✓ Downloaded ${filteredInteractionsData.length} records`;
           console.log(message);
-          showDownloadNotification(message);
+          showDownloadNotification(message, "success");
         } catch (error) {
           console.error("Download error:", error);
-          alert("Error downloading file. Please try again.");
+          showDownloadNotification(
+            "❌ Error downloading file. Please try again.",
+            "error",
+          );
         }
       }
 
       function downloadAllData() {
         if (fullInteractionsData.length === 0) {
-          alert("No data available to download");
+          showDownloadNotification(
+            "⚠️ No data available to download. Check that CSV files loaded successfully.",
+            "warning",
+          );
           return;
         }
 
         try {
           const csv = generateCSV(fullInteractionsData);
+          if (!csv) return;
           const timestamp = new Date()
             .toISOString()
             .slice(0, 19)
@@ -1940,26 +1978,37 @@
           downloadFile(csv, `all-interactions-${timestamp}.csv`);
 
           // Show confirmation
-          const message = `✓ Downloaded complete dataset: ${fullInteractionsData.length} records - all-interactions-${timestamp}.csv`;
+          const message = `✓ Downloaded complete dataset: ${fullInteractionsData.length} records`;
           console.log(message);
-          showDownloadNotification(message);
+          showDownloadNotification(message, "success");
         } catch (error) {
           console.error("Download error:", error);
-          alert("Error downloading file. Please try again.");
+          showDownloadNotification(
+            "❌ Error downloading file. Please try again.",
+            "error",
+          );
         }
       }
 
-      function showDownloadNotification(message) {
+      function showDownloadNotification(message, type = "success") {
         // Create temporary notification
         const notification = document.createElement("div");
         notification.setAttribute("role", "status");
         notification.setAttribute("aria-live", "polite");
         notification.setAttribute("aria-atomic", "true");
+        
+        const bgColor =
+          type === "success"
+            ? "var(--success)"
+            : type === "warning"
+              ? "var(--warning)"
+              : "var(--danger)";
+        
         notification.style.cssText = `
                 position: fixed;
                 bottom: 2rem;
                 right: 2rem;
-                background: var(--success);
+                background: ${bgColor};
                 color: white;
                 padding: 1rem 1.5rem;
                 border-radius: 8px;
@@ -1972,9 +2021,11 @@
         notification.textContent = message;
         document.body.appendChild(notification);
 
-        // Add animation
-        const style = document.createElement("style");
-        style.textContent = `
+        // Add animation if not already added
+        if (!document.getElementById("slideInUpStyle")) {
+          const style = document.createElement("style");
+          style.id = "slideInUpStyle";
+          style.textContent = `
                 @keyframes slideInUp {
                     from {
                         transform: translateY(20px);
@@ -1986,7 +2037,8 @@
                     }
                 }
             `;
-        document.head.appendChild(style);
+          document.head.appendChild(style);
+        }
 
         // Remove notification after 4 seconds
         setTimeout(() => {
@@ -1997,6 +2049,7 @@
         }, 4000);
       }
 
+      // Modal focus management
       let previouslyFocusedElement = null;
       function openModal(src) {
         const modal = document.getElementById("imageModal");
@@ -2028,7 +2081,7 @@
         }
       });
 
-      // Focus trap for modal
+      // Improved focus trap for modal - only trap Tab/Shift+Tab
       document
         .getElementById("imageModal")
         .addEventListener("keydown", function (event) {
@@ -2039,6 +2092,7 @@
             const focusableElements = this.querySelectorAll(
               "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
             );
+            if (focusableElements.length === 0) return;
             const firstElement = focusableElements[0];
             const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -2058,8 +2112,16 @@
       // ============================================================
       // LAZY LOADING - Images load when scrolled into view
       // ============================================================
+      let imageObserver = null;
+      let updateDisplayTimeout = null;
+
       function initializeLazyLoading() {
-        const imageObserver = new IntersectionObserver(
+        // Disconnect existing observer to avoid memory leaks
+        if (imageObserver) {
+          imageObserver.disconnect();
+        }
+
+        imageObserver = new IntersectionObserver(
           (entries, observer) => {
             entries.forEach((entry) => {
               if (entry.isIntersecting) {
@@ -2105,17 +2167,26 @@
           .forEach((img) => imageObserver.observe(img));
       }
 
-      // Initialize lazy loading when data is loaded and displayed
+      // Debounce updateDisplay to prevent rapid re-rendering and observer recreation
       const originalUpdateDisplay = updateDisplay;
       updateDisplay = function () {
         const gallery = document.getElementById("gallery");
         gallery.setAttribute("aria-busy", "true");
-        originalUpdateDisplay.call(this);
-        initializeLazyLoading();
-        // Set aria-busy to false after images are loaded
-        setTimeout(() => {
-          gallery.setAttribute("aria-busy", "false");
-        }, 100);
+
+        // Clear pending update
+        if (updateDisplayTimeout) {
+          clearTimeout(updateDisplayTimeout);
+        }
+
+        // Debounce the update
+        updateDisplayTimeout = setTimeout(() => {
+          originalUpdateDisplay.call(this);
+          initializeLazyLoading();
+          // Set aria-busy to false after images are loaded
+          setTimeout(() => {
+            gallery.setAttribute("aria-busy", "false");
+          }, 100);
+        }, 50);
       };
 
       loadData();
